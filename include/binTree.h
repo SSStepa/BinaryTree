@@ -1,9 +1,10 @@
 #ifndef BIN_TREE
 #define BIN_TREE
 
-#include <stdio.h>
+#include "basic.h"
 
-#include "../include/basic.h"
+const char *const GRAPHVIZ_TEXT_FILE = "graphvizInfo.txt";
+const char *const GRAPHVIZ_OUT_BASE  = "dumpGraphviz";
 
 typedef double binTreeNodeVal_t;
 #define binTreeNodePrintf "%lg"
@@ -36,7 +37,7 @@ struct binTree_t {
  * @param [in] functionCreationName name of function in which tree is created 
  * @param [in] lineCreationNumber   number of line in which tree is created 
  */
-WORK_RES TreeCtor(binTree_t *tree ON_DBG(, const char *variableName, const char *fileCreationName, const char *functionCreationName, int lineCreationNumber));
+WORK_RES TreeCtor(binTree_t *tree ON_DBG(, char *variableName, char *fileCreationName, char *functionCreationName, int lineCreationNumber));
 
 /**
  * Dtor of tree. frees all nodes in dynamic memory.
@@ -45,7 +46,7 @@ WORK_RES TreeCtor(binTree_t *tree ON_DBG(, const char *variableName, const char 
  */
 WORK_RES TreeDtor(binTree_t *tree);
 
-
+#if 0
 /**
  * Verify of tree as whole. Also calls TreeNodeVerify
  * 
@@ -75,7 +76,7 @@ WORK_RES TreeDump(const binTree_t *tree);
  * 
  * @param [in] node node to dump
  */
-WORK_RES TreeNodeDump(const binTreeNode_t *node);
+WORK_RES TreeNodeDump(const binTreeNode_t *node, FILE *outFile);
 
 /**
  * Creates node and gives value to it.
@@ -114,7 +115,7 @@ WORK_RES TreePrintInorder(const binTreeNode_t *node);
  * @param [in] node node to print
  */
 WORK_RES TreePrintPostorder(const binTreeNode_t *node);
-
+#endif
 
 /**
  * macro to call TreeCtor with debugging info args auto adding.
