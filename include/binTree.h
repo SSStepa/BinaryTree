@@ -6,8 +6,10 @@
 const char *const GRAPHVIZ_TEXT_FILE = "graphvizInfo.txt";
 const char *const GRAPHVIZ_OUT_BASE  = "dumpGraphviz";
 
+const int COMMAND_MAX_LEN = 120;
+
 typedef double binTreeNodeVal_t;
-#define binTreeNodePrintf "%lg"
+#define TREE_PRINTF_STRING "%lg"
 
 struct binTreeNode_t {
    binTreeNodeVal_t val;
@@ -60,7 +62,7 @@ WORK_RES TreeVerify(const binTree_t *tree);
  * @param [in] node node to verify.
  */
 WORK_RES TreeNodeVerify(const binTreeNode_t *node);
-
+#endif
 
 /**
  * Dump for all Tree. Calls recursive TreeNodeDump for all tree. 
@@ -76,8 +78,9 @@ WORK_RES TreeDump(const binTree_t *tree);
  * 
  * @param [in] node node to dump
  */
-WORK_RES TreeNodeDump(const binTreeNode_t *node, FILE *outFile);
+WORK_RES TreeNodeDump(const binTreeNode_t *node, FILE *outGraphvizFile, FILE *logFile);
 
+#if 0
 /**
  * Creates node and gives value to it.
  * Sets left and right children to 0. connects created node to passed pointer
