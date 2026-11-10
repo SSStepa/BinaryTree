@@ -40,7 +40,7 @@ WORK_RES TreeDtor(binTree_t *tree)
 
     WORK_RES statusCode = OK;
 
-    // RUN_COMMAND(TreeNodeDelete(&(tree -> data)), "PROBLEM WHILE DELETING ALL TREE");
+    RUN_COMMAND(TreeNodeDelete(&(tree -> data)), "PROBLEM WHILE DELETING ALL TREE");
 
     $INFO("Ending tree deconstruction");
 
@@ -57,7 +57,7 @@ WORK_RES TreeDump(const binTree_t *tree)
     $INFO("Starting dump of stack <%s>", (tree -> debuggingData).variableName);
     
     ON_DBG(
-        LOG_PRINTF("Hi, I'm dump off tree called because of err:%d and has err message <%s>", (tree -> debuggingData).err, (tree -> debuggingData).errorText);
+        LOG_PRINTF("Hi, I'm dump off tree called because of err:%d and has err message <%s>\n", (tree -> debuggingData).err, (tree -> debuggingData).errorText);
     )
 
     FILE *graphvizOutFile = fopen(GRAPHVIZ_TEXT_FILE, "w");
@@ -73,6 +73,10 @@ WORK_RES TreeDump(const binTree_t *tree)
     dumpNumber++;
     TreeNodeDump(tree -> data, graphvizOutFile, logFile);
 
+    ON_DBG(
+        if (tree -> ptrToLastUsedNode)
+            fprintf(graphvizOutFile, "N%p [color=\"#9e7f05\", fillcolor=\"#fad53f\"]\n", tree -> ptrToLastUsedNode);
+    )
     fprintf(graphvizOutFile, "}\n");
     fclose(graphvizOutFile);
 
@@ -111,5 +115,40 @@ WORK_RES TreeNodeDump(const binTreeNode_t *node, FILE *outGraphvizFile, FILE *lo
     RUN_COMMAND(TreeNodeDump(node -> right, outGraphvizFile, logFile), "PROBLEM WHILE PRINTING RIGHT CHILD");
     LOG_PRINTF(")");
 
+    return OK;
+}
+
+WORK_RES TreeNodeCreat(binTreeNodeVal_t val, binTreeNode_t **createdNodePtr)
+{
+    assert(createdNodePtr);
+    $INFO("Starting creating new node which will be connected to <%p>", createdNodePtr);
+
+    binTreeNode_t* newNode = (binTreeNode_t *) calloc(1, sizeof(binTreeNode_t));
+    if (newNode == NULL) {
+        return $ERR(NOMEM, "NOT ENOUGH MEMORY TO CREATE NEW NODE");
+    }
+
+    newNode -> val = val;
+    *createdNodePtr = newNode;
+    
+    $INFO("Ending creating new node which will be connected to <%p>", createdNodePtr);
+    return OK;
+}
+
+WORK_RES TreeNodeDelete(binTreeNode_t **deleteNodePtr)
+{
+    assert(deleteNodePtr);
+    $INFO("Staring deleting node which will is connected to <%p>", deleteNodePtr);
+
+    if (*deleteNodePtr == NULL)
+        return OK;
+
+    TreeNodeDelete(&((*deleteNodePtr) -> left));
+    TreeNodeDelete(&((*deleteNodePtr) -> right));
+
+    free(*deleteNodePtr);
+    *deleteNodePtr = 0;
+
+    $INFO("Ending deleting node which will is connected to <%p>", deleteNodePtr);
     return OK;
 }

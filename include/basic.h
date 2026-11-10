@@ -16,6 +16,7 @@
 #include <getopt.h>
 #include <time.h>
 #include <stdarg.h>
+#include <direct.h>
 
 // -------------------------------------------------------- Project basic only -----------------------------------------------------------------------------
 
@@ -103,6 +104,7 @@ const char *const LOG_FILE = "mainLog.html";
  * max length of error message
  */
 const int MAX_MESS_LENGTH = 200;
+const int NAME_MAX_LENGTH = 80;
 
 /**
  * struct used to describe error info 
@@ -193,5 +195,7 @@ WORK_RES GetFileFullBin(const char *fileName, string_t *string);
 
 WORK_RES FlagsParse(int argc, char *const *argv, const char **FileToReadFrom, const char **FileToWriteTo);
 void ShowHelp();
+
+WORK_RES InitLogDir();
 
 #endif

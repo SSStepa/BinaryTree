@@ -80,7 +80,6 @@ WORK_RES TreeDump(const binTree_t *tree);
  */
 WORK_RES TreeNodeDump(const binTreeNode_t *node, FILE *outGraphvizFile, FILE *logFile);
 
-#if 0
 /**
  * Creates node and gives value to it.
  * Sets left and right children to 0. connects created node to passed pointer
@@ -97,7 +96,7 @@ WORK_RES TreeNodeCreat(binTreeNodeVal_t val, binTreeNode_t **createdNodePtr);
  */
 WORK_RES TreeNodeDelete(binTreeNode_t **deleteNodePtr);
 
-
+#if 0
 /**
  * prints tree recursively in preorder form
  * 
@@ -124,5 +123,25 @@ WORK_RES TreePrintPostorder(const binTreeNode_t *node);
  * macro to call TreeCtor with debugging info args auto adding.
  */
 #define TREE_CTOR(tree) TreeCtor(tree ON_DBG(, TO_STR(tree), __FILE__, __FUNCTION__, __LINE__));
+
+/**
+ * macro to call TreeNodeCreate with debuging info add
+ */
+#define TREE_NODE_CREATE(val, createdNodePtr, tree)     \
+    TreeNodeCreat(val, createdNodePtr);                 \
+    ON_DBG(                                             \
+        tree.ptrToLastUsedNode = *(createdNodePtr);     \
+        TreeDump(&(tree));                              \
+    )                       
+
+/**
+ * macro to call TreeDeleteCreate with debuging info add
+ */
+#define TREE_NODE_DELETE(deleteNodePtr, tree)           \
+    TreeNodeDelete(deleteNodePtr);                      \
+    ON_DBG(                                             \
+        tree.ptrToLastUsedNode = *(deleteNodePtr);      \
+        TreeDump(&(tree));                              \
+    )
 
 #endif
