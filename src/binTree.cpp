@@ -75,7 +75,7 @@ WORK_RES TreeDump(const binTree_t *tree)
 
     ON_DBG(
         if (tree -> ptrToLastUsedNode)
-            fprintf(graphvizOutFile, "N%p [color=\"#9e7f05\", fillcolor=\"#fad53f\"]\n", tree -> ptrToLastUsedNode);
+            fprintf(graphvizOutFile, "N%p [color=\"#9e4f05\", fillcolor=\"#fa8d3f\"]\n", tree -> ptrToLastUsedNode);
     )
     fprintf(graphvizOutFile, "}\n");
     fclose(graphvizOutFile);
@@ -150,5 +150,53 @@ WORK_RES TreeNodeDelete(binTreeNode_t **deleteNodePtr)
     *deleteNodePtr = 0;
 
     $INFO("Ending deleting node which will is connected to <%p>", deleteNodePtr);
+    return OK;
+}
+
+WORK_RES TreePrintPreorder(const binTreeNode_t *node)
+{
+    if (!node)
+        return OK;
+
+    printf("(");
+
+    printf(TREE_PRINTF_STRING, node -> val);
+    TreePrintPreorder(node -> left);
+    TreePrintPreorder(node -> right);
+
+    printf(")");
+
+    return OK;
+}
+
+WORK_RES TreePrintInorder(const binTreeNode_t *node)
+{
+    if (!node)
+        return OK;
+
+    printf("(");
+
+    TreePrintInorder(node -> left);
+    printf(TREE_PRINTF_STRING, node -> val);
+    TreePrintInorder(node -> right);
+
+    printf(")");
+
+    return OK;
+}
+
+WORK_RES TreePrintPostorder(const binTreeNode_t *node)
+{
+    if (!node)
+        return OK;
+
+    printf("(");
+
+    TreePrintPostorder(node -> left);
+    TreePrintPostorder(node -> right);
+    printf(TREE_PRINTF_STRING, node -> val);
+
+    printf(")");
+
     return OK;
 }

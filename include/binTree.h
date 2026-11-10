@@ -96,7 +96,6 @@ WORK_RES TreeNodeCreat(binTreeNodeVal_t val, binTreeNode_t **createdNodePtr);
  */
 WORK_RES TreeNodeDelete(binTreeNode_t **deleteNodePtr);
 
-#if 0
 /**
  * prints tree recursively in preorder form
  * 
@@ -117,7 +116,6 @@ WORK_RES TreePrintInorder(const binTreeNode_t *node);
  * @param [in] node node to print
  */
 WORK_RES TreePrintPostorder(const binTreeNode_t *node);
-#endif
 
 /**
  * macro to call TreeCtor with debugging info args auto adding.

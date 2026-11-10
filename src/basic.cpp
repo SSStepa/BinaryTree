@@ -208,3 +208,21 @@ void ShowHelp()
     printf("[-i]  Name of file to read from\n");
     printf("[-o]  Name of file to write to");
 }
+
+WORK_RES InitLogDir()
+{
+    time_t rawtime;
+    struct tm *timeinfo;
+    char folderName[NAME_MAX_LENGTH];
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(folderName, sizeof(folderName), "%Y-%m-%d_%H-%M-%S", timeinfo);
+    if (_mkdir(folderName) != 0)
+        return $ERR(WRIN, "ERROR WHILE TRYING TO CREATE LOG FOLDER");
+    if (_chdir(folderName) != 0)
+        return $ERR(WRIN, "ERROR WHILE TRYING TO CD LOG FOLDER");
+    
+    return OK;
+}
