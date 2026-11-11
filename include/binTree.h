@@ -8,8 +8,8 @@ const char *const GRAPHVIZ_OUT_BASE  = "dumpGraphviz";
 
 const int COMMAND_MAX_LEN = 120;
 
-typedef double binTreeNodeVal_t;
-#define TREE_PRINTF_STRING "%lg"
+// typedef double binTreeNodeVal_t;
+// #define TREE_PRINTF_STRING "%lg"
 
 struct binTreeNode_t {
    binTreeNodeVal_t val;
@@ -39,7 +39,7 @@ struct binTree_t {
  * @param [in] functionCreationName name of function in which tree is created 
  * @param [in] lineCreationNumber   number of line in which tree is created 
  */
-WORK_RES TreeCtor(binTree_t *tree ON_DBG(, char *variableName, char *fileCreationName, char *functionCreationName, int lineCreationNumber));
+WORK_RES TreeCtor(binTree_t *tree ON_DBG(, const char *variableName, const char *fileCreationName, const char *functionCreationName, const int lineCreationNumber));
 
 /**
  * Dtor of tree. frees all nodes in dynamic memory.

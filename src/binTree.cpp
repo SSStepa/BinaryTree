@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 WORK_RES TreeCtor(binTree_t *tree
-     ON_DBG(, char *variableName, char *fileCreationName, char *functionCreationName, int lineCreationNumber)
+     ON_DBG(, const char *variableName, const char *fileCreationName, const char *functionCreationName, const int lineCreationNumber)
 )
 {
     assert(tree);
