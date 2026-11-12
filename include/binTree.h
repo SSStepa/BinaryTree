@@ -48,7 +48,6 @@ WORK_RES TreeCtor(binTree_t *tree ON_DBG(, const char *variableName, const char 
  */
 WORK_RES TreeDtor(binTree_t *tree);
 
-#if 0
 /**
  * Verify of tree as whole. Also calls TreeNodeVerify
  * 
@@ -62,7 +61,6 @@ WORK_RES TreeVerify(const binTree_t *tree);
  * @param [in] node node to verify.
  */
 WORK_RES TreeNodeVerify(const binTreeNode_t *node);
-#endif
 
 /**
  * Dump for all Tree. Calls recursive TreeNodeDump for all tree. 
@@ -128,7 +126,7 @@ WORK_RES TreePrintPostorder(const binTreeNode_t *node);
 #define TREE_NODE_CREATE(val, createdNodePtr, tree)     \
     TreeNodeCreat(val, createdNodePtr);                 \
     ON_DBG(                                             \
-        tree.ptrToLastUsedNode = *(createdNodePtr);     \
+        (tree).ptrToLastUsedNode = *(createdNodePtr);     \
         TreeDump(&(tree));                              \
     )                       
 

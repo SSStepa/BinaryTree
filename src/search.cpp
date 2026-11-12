@@ -10,7 +10,7 @@ WORK_RES AddNodeToSortedTree(binTree_t *tree, binTreeNodeVal_t val)
     binTreeNode_t **ptrToConnect = 0;
 
     RUN_COMMAND(FindPlaceToConnect(&(tree -> data), &ptrToConnect, val), "CANNOT FIND WHERE TO ADD NODE");
-    RUN_COMMAND(TreeNodeCreat(val, ptrToConnect), "CANT ADD NEW NODE TO TREE");
+    TREE_NODE_CREATE(val, ptrToConnect, *tree);
 
     $INFO("ending adding new node to tree <%s>", tree -> debuggingData.variableName);
     return statusCode;

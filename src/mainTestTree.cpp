@@ -15,7 +15,6 @@ int main()
     binTree_t tree = {};
     TREE_CTOR(&tree);
 
-
     AddNodeToSortedTree(&tree, 67);
     AddNodeToSortedTree(&tree, 20);
     AddNodeToSortedTree(&tree, 52);
