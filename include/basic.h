@@ -200,6 +200,7 @@ void ShowHelp();
 errorStatus_e InitLogDir();
 
 errorStatus_e ClearBuffer();
+void SkipSpaces(char **ptrToString);
 
 const int INIT_GETLINE_BUFF = 128;
 

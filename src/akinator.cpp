@@ -80,7 +80,7 @@ errorStatus_e GetUserAnsInOneChar(int *userChoose)
 {
     assert(userChoose);
     
-    if (scanf("%c", userChoose) != 1)
+    if (scanf("%c", (char *) userChoose) != 1)
         return $ERR(WRIN, "PROBLEM WHILE GETTING USER ANS");
     ClearBuffer();
 
@@ -115,6 +115,8 @@ errorStatus_e AddNodeToAkinator(binTreeNode_t **ptrToConnect, char **ptrToRead)
     assert(*ptrToRead);
     assert(ptrToConnect);
 
+    SkipSpaces(ptrToRead);
+
     if (CheckSymbolAndMove(ptrToRead, '(') || CheckSymbolAndMove(ptrToRead, '"'))
         return $ERR(WRIN, "SYNTAX ERROR IN FILE");
 
@@ -127,9 +129,12 @@ errorStatus_e AddNodeToAkinator(binTreeNode_t **ptrToConnect, char **ptrToRead)
     }
     
     *((*ptrToRead) - 1) = '\0';
+    SkipSpaces(ptrToRead);
     
     if (CheckSymbolAndMove(ptrToRead, ')') == OK)
         return OK;
+    
+    SkipSpaces(ptrToRead);
 
     if (AddNodeToAkinator(&((*ptrToConnect) -> left),  ptrToRead) != OK)
         return $ERR(WRIN, "PROBLEM IN LEFT SON RECURSION");
@@ -408,17 +413,19 @@ errorStatus_e CheckIfNodeIsSame(binTreeNode_t *node, char *inWord, stack_t *data
     assert(inWord);
     assert(dataStore);
     assert(node);
+
     $INFO("starting checking node %s", node -> val);
+
     if (node -> left) {
         if (CheckIfNodeIsSame(node -> left, inWord, dataStore) == OK) {
-            STACK_PUSH(dataStore, ", ");
+            STACK_PUSH(dataStore, (char *) ", ");
             STACK_PUSH(dataStore, node -> val);
             return OK;
         }
         if (CheckIfNodeIsSame(node -> right, inWord, dataStore) == OK) {
-            STACK_PUSH(dataStore, ", ");
+            STACK_PUSH(dataStore, (char *) ", ");
             STACK_PUSH(dataStore, node -> val);
-            STACK_PUSH(dataStore, "не ");
+            STACK_PUSH(dataStore, (char *) "не ");
             return OK;
         }
 

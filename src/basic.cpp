@@ -270,3 +270,12 @@ ssize_t my_getline(char **lineToWritePtr, size_t *buffLen, FILE *stream)
 
     return (ssize_t) pos;
 }
+
+void SkipSpaces(char **ptrToString)
+{
+    assert(ptrToString);
+    assert(*ptrToString);
+
+    while (**ptrToString == ' ' || **ptrToString == '\n' || **ptrToString == '\r' || **ptrToString == '\t')
+        (*ptrToString)++;
+}
