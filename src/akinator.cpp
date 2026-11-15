@@ -46,7 +46,8 @@ errorStatus_e Akinator(const char *fileToReadFrom, const char *fileToWriteTo)
             break;
         case DEFINE:    RUN_COMMAND(Define(&tree), "PROBLEM WHILE GIVING DEFINITION");
             break;
-        // case COMPARE:   return CompareTwoObjects(&tree);
+        case COMPARE:   RUN_COMMAND(Compare(&tree), "PROBLEM WHILE COMPARING TWO WORDS");
+            break;
         case SHOW_TREE: RUN_COMMAND(ShowTreeInGraphviz(&tree), "PROBLEM WHILE SHOWING TREE");
             break;
         case QUIT:      return QuitProgram(&tree, &inString, fileToWriteTo);
@@ -66,7 +67,7 @@ errorStatus_e ChooseGameMode(int *userChoose)
 
     printf("g - Угадаю слово\n");
     printf("d - Дам определение задуманному слову\n");
-    // printf("c - Сравню два выбранных тобой слова\n");
+    printf("c - Сравню два выбранных тобой слова\n");
     printf("o - Выведу дерево ответов\n");
     printf("q - Закончу работу даже не начав((\n");
     printf("Ваш ответ: ");
@@ -153,7 +154,7 @@ errorStatus_e CheckSymbolAndMove(char **ptrLineToCheck, char Symbol)
     assert(*ptrLineToCheck);
 
     if (**ptrLineToCheck != Symbol) 
-        return $ERR(WRIN, "NO CHAR %c", Symbol);
+        return WRIN;
     
     (*ptrLineToCheck)++;
 
@@ -237,7 +238,6 @@ errorStatus_e AddUnknownWord(binTreeNode_t *prevNode, binTreeNode_t *node)
     }
 
     connectionPlace -> right = node; 
-
     TreeNodeCreate(newObject, &(connectionPlace -> left));
 
     $INFO("ending adding new node to tree");
@@ -250,16 +250,40 @@ errorStatus_e Define(binTree_t *tree)
 
     errorStatus_e statusCode = OK;
 
-    stack_t stackToShow = {};
-    STACK_CTOR(&stackToShow, INIT_STACK_CAPACITY);
-    char inWord[MAX_ANS_LEN + 1] = {}; 
+    treeWordQuality_t inWord = {};
+    STACK_CTOR(&(inWord.descriptionStack), INIT_STACK_CAPACITY);
 
     printf("И ты хочешь что бы я определил: ");
-    scanf("%" NUM_TO_STR(MAX_ANS_LEN) "[^\n]", inWord);
+    scanf("%" NUM_TO_STR(MAX_ANS_LEN) "[^\n]", inWord.word);
     ClearBuffer();
 
-    RUN_COMMAND(GiveDefinitionTo(tree, inWord, &stackToShow), "PROBLEM WHILE GIVING DEFINITION OCCUR");
+    RUN_COMMAND(GiveDefinitionTo(tree, &inWord), "PROBLEM WHILE GIVING DEFINITION OCCUR");
 
+    return OK;
+}
+
+errorStatus_e Compare(binTree_t *tree)
+{
+    assert(tree);
+
+    $INFO("starting comparing two words");
+    errorStatus_e statusCode = OK;
+
+    treeWordQuality_t firstInWord = {};
+    treeWordQuality_t secondInWord = {};
+    STACK_CTOR(&(firstInWord.descriptionStack), INIT_STACK_CAPACITY);
+    STACK_CTOR(&(secondInWord.descriptionStack), INIT_STACK_CAPACITY);
+
+    printf("Первое слово для сравнения: ");
+    scanf("%" NUM_TO_STR(MAX_ANS_LEN) "[^\n]", firstInWord.word);
+    ClearBuffer();
+    printf("Второе слово для сравнения: ");
+    scanf("%" NUM_TO_STR(MAX_ANS_LEN) "[^\n]", secondInWord.word);
+    ClearBuffer();
+
+    RUN_COMMAND(CimpareTwoWords(tree, &firstInWord, &secondInWord), "PROBLEM WHILE COMPARING");
+
+    $INFO("ending comparing two words");
     return OK;
 }
 
@@ -383,56 +407,121 @@ errorStatus_e DeleteAkinatorNode(string_t *startString, binTreeNode_t **nodePtr)
     return OK;
 }
 
-errorStatus_e GiveDefinitionTo(binTree_t *tree, char *inWord, stack_t *dataStore)
+errorStatus_e GiveDefinitionTo(binTree_t *tree, treeWordQuality_t *wordToDef)
 {
     assert(tree);
-    errorStatus_e statusCode = OK;
-    $INFO("starting giving definition to %s", inWord);
+    assert(wordToDef);
 
-    if (CheckIfNodeIsSame(tree -> data, inWord, dataStore) != OK) {
-        printf(RED "Слова которое ты ввёл нет в моей базе" COLOR_RESET);
+    $INFO("starting giving definition to %s", wordToDef -> word);
+    errorStatus_e statusCode = OK;
+
+    if (FindNodeQualities(tree -> data, wordToDef) != OK) {
+        printf(RED "Слова которое ты ввёл нет в моей базе\n" COLOR_RESET);
         return OK;
     }
  
-    printf(GRN "%s" COLOR_RESET ": ", inWord);
-    char *quality = 0;
-    while(dataStore -> size != 0) {
-        RUN_COMMAND(STACK_POP(dataStore, &quality), "ERROR WHILE TRYING TO POP DATA FROM STACK");
-        assert(quality);
+    RUN_COMMAND(OutStackOfQualities(wordToDef), "ERROR WHILE OUTING STACK");
 
-        printf("%s", quality);
-    }
-    printf("\b\b  \n");
-
-    $INFO("ending giving definition to %s", inWord);
+    $INFO("ending giving definition to %s", wordToDef -> word);
     return statusCode;
 }
 
-errorStatus_e CheckIfNodeIsSame(binTreeNode_t *node, char *inWord, stack_t *dataStore)
+errorStatus_e CimpareTwoWords(binTree_t *tree, treeWordQuality_t *firstWord, treeWordQuality_t *secondWord)
+{
+    assert(tree);
+    assert(firstWord);
+    assert(secondWord);
+
+    $INFO("starting comparing words", firstWord -> word, secondWord -> word);
+    errorStatus_e statusCode = OK;
+    
+    if (FindNodeQualities(tree -> data, firstWord) != OK) {
+        printf(RED "Слова <%s> нет в моей базе" COLOR_RESET, firstWord -> word);
+        return OK;
+    }
+    if (FindNodeQualities(tree -> data, secondWord) != OK) {
+        printf(RED "Слова <%s> нет в моей базе" COLOR_RESET, secondWord -> word);
+        return OK;
+    }
+
+    char *firstQuality = 0;
+    char *secondQuality = 0;
+    if ((firstWord -> descriptionStack).size != 0 && (secondWord -> descriptionStack).size != 0 && 
+            strcmp(firstWord -> word, secondWord -> word) == 0) {
+        printf(GRN "Они оба: " COLOR_RESET);
+        do {
+            RUN_COMMAND(STACK_POP(&(firstWord -> descriptionStack), &firstQuality), "ERROR WHILE TRYING TO POP DATA FROM STACK TO FIRST");
+            RUN_COMMAND(STACK_POP(&(secondWord -> descriptionStack), &secondQuality), "ERROR WHILE TRYING TO POP DATA FROM STACK TO SECOND");
+            assert(firstQuality);
+            assert(secondQuality);
+
+            printf("%s", firstQuality);
+        } while((firstWord -> descriptionStack).size != 0 && (secondWord -> descriptionStack).size != 0 && 
+            strcmp(firstWord -> word, secondWord -> word) == 0);
+    
+        printf("\b\b  \n");
+    } else 
+        printf("У них нет Общих черт\n");
+
+    if ((firstWord -> descriptionStack).size != 0) { 
+        printf("Но ");
+        RUN_COMMAND(OutStackOfQualities(firstWord), "PROBLEM WHILE OUTING FIRST WORD STACK");
+    }
+    if ((secondWord -> descriptionStack).size != 0) { 
+        printf("A ");
+        RUN_COMMAND(OutStackOfQualities(secondWord), "PROBLEM WHILE OUTING SECOND WORD STACK");
+    }
+    
+    $INFO("starting comparing words", firstWord -> word, secondWord -> word);
+    return statusCode;
+}
+
+errorStatus_e OutStackOfQualities(treeWordQuality_t *wordToDef)
+{
+    assert(wordToDef);
+    
+    errorStatus_e statusCode = OK;
+
+    if ((wordToDef -> descriptionStack).size != 0) {
+        printf(GRN "%s" COLOR_RESET ": ", wordToDef -> word);
+        char *quality = 0;
+        do {
+            RUN_COMMAND(STACK_POP(&(wordToDef -> descriptionStack), &quality), "ERROR WHILE TRYING TO POP DATA FROM STACK");
+            assert(quality);
+
+            printf("%s", quality);
+        } while((wordToDef -> descriptionStack).size != 0);
+
+        printf("\b\b  \n");
+    }
+
+    return OK;
+}
+
+errorStatus_e FindNodeQualities(binTreeNode_t *node, treeWordQuality_t *inWord)
 {
     assert(inWord);
-    assert(dataStore);
     assert(node);
 
     $INFO("starting checking node %s", node -> val);
 
     if (node -> left) {
-        if (CheckIfNodeIsSame(node -> left, inWord, dataStore) == OK) {
-            STACK_PUSH(dataStore, (char *) ", ");
-            STACK_PUSH(dataStore, node -> val);
+        if (FindNodeQualities(node -> left, inWord) == OK) {
+            STACK_PUSH(&(inWord -> descriptionStack), (char *) ", ");
+            STACK_PUSH(&(inWord -> descriptionStack), node -> val);
             return OK;
         }
-        if (CheckIfNodeIsSame(node -> right, inWord, dataStore) == OK) {
-            STACK_PUSH(dataStore, (char *) ", ");
-            STACK_PUSH(dataStore, node -> val);
-            STACK_PUSH(dataStore, (char *) "не ");
+        if (FindNodeQualities(node -> right, inWord) == OK) {
+            STACK_PUSH(&(inWord -> descriptionStack), (char *) ", ");
+            STACK_PUSH(&(inWord -> descriptionStack), node -> val);
+            STACK_PUSH(&(inWord -> descriptionStack), (char *) "не ");
             return OK;
         }
 
         return WRIN;
     }
 
-    if (strncmp(inWord, node -> val, MAX_ANS_LEN) == 0) {
+    if (strncmp(inWord -> word, node -> val, MAX_ANS_LEN) == 0) {
         return OK;
     }
 

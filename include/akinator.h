@@ -24,6 +24,11 @@ enum userQuestionAns_e {
     NO  = 'n',
 };
 
+struct treeWordQuality_t {
+    char word[MAX_ANS_LEN + 1];
+    stack_t descriptionStack;
+};
+
 errorStatus_e Akinator(const char *fileToReadFrom, const char *fileToWriteTo);
 
 errorStatus_e ChooseGameMode(int *userChoose);
@@ -37,8 +42,12 @@ errorStatus_e Guess(binTree_t *tree);
 errorStatus_e AddUnknownWord(binTreeNode_t *prevNode, binTreeNode_t *node);
 
 errorStatus_e Define(binTree_t *tree);
-errorStatus_e GiveDefinitionTo(binTree_t *tree, char *inWord, stack_t *dataStore);
-errorStatus_e CheckIfNodeIsSame(binTreeNode_t *node, char *inWord, stack_t *dataStore);
+errorStatus_e GiveDefinitionTo(binTree_t *tree, treeWordQuality_t *inWord);
+errorStatus_e FindNodeQualities(binTreeNode_t *node, treeWordQuality_t *inWord);
+errorStatus_e OutStackOfQualities(treeWordQuality_t *wordToDef);
+
+errorStatus_e Compare(binTree_t *tree);
+errorStatus_e CimpareTwoWords(binTree_t *tree, treeWordQuality_t *firstWord, treeWordQuality_t *secondWord);
 
 errorStatus_e ShowTreeInGraphviz(const binTree_t *tree);
 errorStatus_e TreeNodeShow(const binTreeNode_t *node, FILE *outGraphvizFile);
