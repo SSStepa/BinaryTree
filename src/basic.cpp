@@ -26,7 +26,7 @@ void InfoPrintfDouble(double var, const char *varName, const char *file, int lin
     fprintf(stderr, YEL "%s, %d:%s %s = <%s%lg%s>\n", file, line, COLOR_RESET, varName, CYN, var, COLOR_RESET);
 }
 
-WORK_RES LogPrintf(const char *messageType, const char *errMess, int line, const char *file, WORK_RES ErrCode, ...)
+errorStatus_e LogPrintf(const char *messageType, const char *errMess, int line, const char *file, errorStatus_e ErrCode, ...)
 {
     assert(messageType);
     assert(errMess);
@@ -61,7 +61,7 @@ WORK_RES LogPrintf(const char *messageType, const char *errMess, int line, const
     return ErrCode;
 }
 
-WORK_RES StartError()
+errorStatus_e StartError()
 {
     FILE *fileLog = fopen(LOG_FILE, "a");
     if (fileLog == NULL) return $ERR(FILEERR, "PROBLEM WITH LOG FILE");
@@ -73,7 +73,7 @@ WORK_RES StartError()
     return OK;
 }
 
-WORK_RES EndError()
+errorStatus_e EndError()
 {
     FILE *fileLog = fopen(LOG_FILE, "a");
     if (fileLog == NULL) return $ERR(FILEERR, "PROBLEM WITH LOG FILE");
@@ -85,7 +85,7 @@ WORK_RES EndError()
     return OK;
 }
 
-WORK_RES SetUpLog()
+errorStatus_e SetUpLog()
 {
     FILE *fileLog = fopen(LOG_FILE, "a");
     if (fileLog == NULL) return $ERR(FILEERR, "PROBLEM WITH LOG FILE");
@@ -99,7 +99,7 @@ WORK_RES SetUpLog()
     return OK;
 }
 
-WORK_RES EndLog()
+errorStatus_e EndLog()
 {
     FILE *fileLog = fopen(LOG_FILE, "a");
 
@@ -119,7 +119,7 @@ bool IsZero(double x)
         return false;
 }
 
-WORK_RES GetFileFull(const char *fileName, string_t *string)
+errorStatus_e GetFileFull(const char *fileName, string_t *string)
 {
     assert(fileName != NULL);
     assert(string);
@@ -147,7 +147,7 @@ WORK_RES GetFileFull(const char *fileName, string_t *string)
     return OK;
 }
 
-WORK_RES GetFileFullBin(const char *fileName, string_t *string)
+errorStatus_e GetFileFullBin(const char *fileName, string_t *string)
 {
     assert(fileName != NULL);
     assert(string);
@@ -175,7 +175,7 @@ WORK_RES GetFileFullBin(const char *fileName, string_t *string)
     return OK;
 }
 
-WORK_RES FlagsParse(int argc, char *const *argv, const char **FileToReadFrom, const char **FileToWriteTo)
+errorStatus_e FlagsParse(int argc, char *const *argv, const char **FileToReadFrom, const char **FileToWriteTo)
 {
     int arg = 0;
 
@@ -209,7 +209,7 @@ void ShowHelp()
     printf("[-o]  Name of file to write to");
 }
 
-WORK_RES InitLogDir()
+errorStatus_e InitLogDir()
 {
     time_t rawtime;
     struct tm *timeinfo;
@@ -225,4 +225,48 @@ WORK_RES InitLogDir()
         return $ERR(WRIN, "ERROR WHILE TRYING TO CD LOG FOLDER");
     
     return OK;
+}
+
+errorStatus_e ClearBuffer()
+{
+    while(int c = getchar() != '\n' && c != EOF) {
+        ;
+    }
+
+    return OK;
+}
+
+ssize_t my_getline(char **lineToWritePtr, size_t *buffLen, FILE *stream)
+{
+    assert(lineToWritePtr);
+    assert(buffLen);
+    assert(stream);
+    
+    if (*lineToWritePtr == NULL || *buffLen == 0) {
+        *buffLen = INIT_GETLINE_BUFF;
+        *lineToWritePtr = (char *) calloc(INIT_GETLINE_BUFF, sizeof(char));
+        if (!(*lineToWritePtr))
+            return -1;
+    }
+
+    size_t pos = 0;
+    int c = 0;
+    while((c = fgetc(stream)) != EOF) {
+        if (pos + 1 >= *buffLen) {
+            char *tempBuff = (char *) realloc(*lineToWritePtr, *buffLen * 2);
+            if (!tempBuff) return -1;
+
+            *lineToWritePtr = tempBuff;
+            *buffLen *= 2;
+        }
+
+        if (c == '\n') break;
+        (*lineToWritePtr)[pos++] = (char) c;
+    }
+
+    if (pos == 0 && c == EOF) return -1;
+
+    (*lineToWritePtr)[pos] = '\0';
+
+    return (ssize_t) pos;
 }

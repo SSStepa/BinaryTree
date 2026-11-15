@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-WORK_RES TreeCtor(binTree_t *tree
+errorStatus_e TreeCtor(binTree_t *tree
      ON_DBG(, const char *variableName, const char *fileCreationName, const char *functionCreationName, const int lineCreationNumber)
 )
 {
@@ -32,13 +32,13 @@ WORK_RES TreeCtor(binTree_t *tree
     return OK;
 }
 
-WORK_RES TreeDtor(binTree_t *tree)
+errorStatus_e TreeDtor(binTree_t *tree)
 {
     assert(tree);
 
     $INFO("Starting tree deconstruction");
 
-    WORK_RES statusCode = OK;
+    errorStatus_e statusCode = OK;
 
     RUN_COMMAND(TreeNodeDelete(&(tree -> data)), "PROBLEM WHILE DELETING ALL TREE");
 
@@ -47,11 +47,11 @@ WORK_RES TreeDtor(binTree_t *tree)
     return statusCode;
 }
 
-WORK_RES TreeDump(const binTree_t *tree)
+errorStatus_e TreeDump(const binTree_t *tree)
 {
     assert(tree);
 
-    WORK_RES statusCode = OK;
+    errorStatus_e statusCode = OK;
     LOG_START();
 
     $INFO("Starting dump of stack <%s>", (tree -> debuggingData).variableName);
@@ -89,12 +89,12 @@ WORK_RES TreeDump(const binTree_t *tree)
     return statusCode;
 }
 
-WORK_RES TreeNodeDump(const binTreeNode_t *node, FILE *outGraphvizFile, FILE *logFile)
+errorStatus_e TreeNodeDump(const binTreeNode_t *node, FILE *outGraphvizFile, FILE *logFile)
 {
     assert(outGraphvizFile);
     assert(logFile);
 
-    WORK_RES statusCode = OK;
+    errorStatus_e statusCode = OK;
 
     if (node == 0)
         return OK;
@@ -118,7 +118,7 @@ WORK_RES TreeNodeDump(const binTreeNode_t *node, FILE *outGraphvizFile, FILE *lo
     return OK;
 }
 
-WORK_RES TreeNodeCreat(binTreeNodeVal_t val, binTreeNode_t **createdNodePtr)
+errorStatus_e TreeNodeCreate(binTreeNodeVal_t val, binTreeNode_t **createdNodePtr)
 {
     assert(createdNodePtr);
     $INFO("Starting creating new node which will be connected to <%p>", createdNodePtr);
@@ -135,7 +135,7 @@ WORK_RES TreeNodeCreat(binTreeNodeVal_t val, binTreeNode_t **createdNodePtr)
     return OK;
 }
 
-WORK_RES TreeNodeDelete(binTreeNode_t **deleteNodePtr)
+errorStatus_e TreeNodeDelete(binTreeNode_t **deleteNodePtr)
 {
     assert(deleteNodePtr);
     $INFO("Staring deleting node which will is connected to <%p>", deleteNodePtr);
@@ -153,7 +153,7 @@ WORK_RES TreeNodeDelete(binTreeNode_t **deleteNodePtr)
     return OK;
 }
 
-WORK_RES TreePrintPreorder(const binTreeNode_t *node)
+errorStatus_e TreePrintPreorder(const binTreeNode_t *node)
 {
     if (!node)
         return OK;
@@ -169,7 +169,7 @@ WORK_RES TreePrintPreorder(const binTreeNode_t *node)
     return OK;
 }
 
-WORK_RES TreePrintInorder(const binTreeNode_t *node)
+errorStatus_e TreePrintInorder(const binTreeNode_t *node)
 {
     if (!node)
         return OK;
@@ -185,7 +185,7 @@ WORK_RES TreePrintInorder(const binTreeNode_t *node)
     return OK;
 }
 
-WORK_RES TreePrintPostorder(const binTreeNode_t *node)
+errorStatus_e TreePrintPostorder(const binTreeNode_t *node)
 {
     if (!node)
         return OK;

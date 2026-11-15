@@ -39,35 +39,35 @@ struct binTree_t {
  * @param [in] functionCreationName name of function in which tree is created 
  * @param [in] lineCreationNumber   number of line in which tree is created 
  */
-WORK_RES TreeCtor(binTree_t *tree ON_DBG(, const char *variableName, const char *fileCreationName, const char *functionCreationName, const int lineCreationNumber));
+errorStatus_e TreeCtor(binTree_t *tree ON_DBG(, const char *variableName, const char *fileCreationName, const char *functionCreationName, const int lineCreationNumber));
 
 /**
  * Dtor of tree. frees all nodes in dynamic memory.
  * 
  * @param [out] tree pointer to tree to deconstruct.
  */
-WORK_RES TreeDtor(binTree_t *tree);
+errorStatus_e TreeDtor(binTree_t *tree);
 
 /**
  * Verify of tree as whole. Also calls TreeNodeVerify
  * 
  * @param [in] tree pointer to tree for to verify
  */
-WORK_RES TreeVerify(const binTree_t *tree);
+errorStatus_e TreeVerify(const binTree_t *tree);
 
 /**
  * Verify of one node. recursively calls itself while all tree is not verified 
  * 
  * @param [in] node node to verify.
  */
-WORK_RES TreeNodeVerify(const binTreeNode_t *node);
+errorStatus_e TreeNodeVerify(const binTreeNode_t *node);
 
 /**
  * Dump for all Tree. Calls recursive TreeNodeDump for all tree. 
  * 
  * @param [in] tree tree to dump
  */
-WORK_RES TreeDump(const binTree_t *tree);
+errorStatus_e TreeDump(const binTree_t *tree);
 
 
 /**
@@ -76,7 +76,7 @@ WORK_RES TreeDump(const binTree_t *tree);
  * 
  * @param [in] node node to dump
  */
-WORK_RES TreeNodeDump(const binTreeNode_t *node, FILE *outGraphvizFile, FILE *logFile);
+errorStatus_e TreeNodeDump(const binTreeNode_t *node, FILE *outGraphvizFile, FILE *logFile);
 
 /**
  * Creates node and gives value to it.
@@ -85,35 +85,35 @@ WORK_RES TreeNodeDump(const binTreeNode_t *node, FILE *outGraphvizFile, FILE *lo
  * @param [in] val value which is given to new node 
  * @param [out] createdNodePtr pointer in which new node pointer to is saved(so it can be field in parent node) 
  */
-WORK_RES TreeNodeCreat(binTreeNodeVal_t val, binTreeNode_t **createdNodePtr);
+errorStatus_e TreeNodeCreate(binTreeNodeVal_t val, binTreeNode_t **createdNodePtr);
 
 /**
  * deletes node and all it's children recursively.
  * 
  * @param [in, out] deleteNodePtr pointer to node to delete
  */
-WORK_RES TreeNodeDelete(binTreeNode_t **deleteNodePtr);
+errorStatus_e TreeNodeDelete(binTreeNode_t **deleteNodePtr);
 
 /**
  * prints tree recursively in preorder form
  * 
  * @param [in] node node to print
  */
-WORK_RES TreePrintPreorder(const binTreeNode_t *node);
+errorStatus_e TreePrintPreorder(const binTreeNode_t *node);
 
 /**
  * prints tree recursively in inorder form
  * 
  * @param [in] node node to print
  */
-WORK_RES TreePrintInorder(const binTreeNode_t *node);
+errorStatus_e TreePrintInorder(const binTreeNode_t *node);
 
 /**
  * prints tree recursively in postorder form
  * 
  * @param [in] node node to print
  */
-WORK_RES TreePrintPostorder(const binTreeNode_t *node);
+errorStatus_e TreePrintPostorder(const binTreeNode_t *node);
 
 /**
  * macro to call TreeCtor with debugging info args auto adding.
@@ -121,10 +121,10 @@ WORK_RES TreePrintPostorder(const binTreeNode_t *node);
 #define TREE_CTOR(tree) TreeCtor(tree ON_DBG(, TO_STR(tree), __FILE__, __FUNCTION__, __LINE__));
 
 /**
- * macro to call TreeNodeCreate with debuging info add
+ * macro to call TreeNodeCreatee with debuging info add
  */
 #define TREE_NODE_CREATE(val, createdNodePtr, tree)     \
-    TreeNodeCreat(val, createdNodePtr);                 \
+    TreeNodeCreate(val, createdNodePtr);                 \
     ON_DBG(                                             \
         (tree).ptrToLastUsedNode = *(createdNodePtr);     \
         TreeDump(&(tree));                              \

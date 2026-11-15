@@ -2,23 +2,51 @@
 #define AKINATOR
 
 #include "basic.h"
+#include "stack.h"
 
-const int MAX_ANS_LEN = 100;
+#include <stdio.h>
+#include <stdlib.h>
 
-WORK_RES Akinator(const char *fileToReadFrom, const char *fileToWriteTo);
+#define MAX_ANS_LEN 100
 
-WORK_RES TakeDataAndInitTree(const char *fileToReadFrom, binTree_t *tree, string_t *inString);
-WORK_RES AddNodeToAkinator(binTreeNode_t **ptrToConnect, char **ptrToRead);
+const int INIT_STACK_CAPACITY = 20;
 
-WORK_RES Guess(binTree_t *tree);
-WORK_RES AddUnknownWord(binTreeNode_t *prevNode, binTreeNode_t *node);
+enum gameMode_e {
+    GUESS     = 'g',
+    DEFINE    = 'd',
+    COMPARE   = 'c',
+    SHOW_TREE = 'o',
+    QUIT      = 'q',
+};
 
-WORK_RES OutTreeToFile(binTree_t *tree, const char *fileToWriteTo);
-WORK_RES OutNodeToFile(binTreeNode_t *node, FILE *outFile);
+enum userQuestionAns_e {
+    YES = 'y',
+    NO  = 'n',
+};
 
-WORK_RES ShowTreeInGraphviz(const binTree_t *tree);
-WORK_RES TreeNodeShow(const binTreeNode_t *node, FILE *outGraphvizFile);
+errorStatus_e Akinator(const char *fileToReadFrom, const char *fileToWriteTo);
 
-WORK_RES DeleteAkinatorNode(string_t *startString, binTreeNode_t **nodePtr);
+errorStatus_e ChooseGameMode(int *userChoose);
+errorStatus_e GetUserAnsInOneChar(int *userChoose);
+
+errorStatus_e TakeDataAndInitTree(const char *fileToReadFrom, binTree_t *tree, string_t *inString);
+errorStatus_e AddNodeToAkinator(binTreeNode_t **ptrToConnect, char **ptrToRead);
+errorStatus_e CheckSymbolAndMove(char **ptrLineToCheck, char Symbol);
+
+errorStatus_e Guess(binTree_t *tree);
+errorStatus_e AddUnknownWord(binTreeNode_t *prevNode, binTreeNode_t *node);
+
+errorStatus_e Define(binTree_t *tree);
+errorStatus_e GiveDefinitionTo(binTree_t *tree, char *inWord, stack_t *dataStore);
+errorStatus_e CheckIfNodeIsSame(binTreeNode_t *node, char *inWord, stack_t *dataStore);
+
+errorStatus_e ShowTreeInGraphviz(const binTree_t *tree);
+errorStatus_e TreeNodeShow(const binTreeNode_t *node, FILE *outGraphvizFile);
+
+errorStatus_e QuitProgram(binTree_t *tree, string_t *inString, const char *fileToWriteTo);
+errorStatus_e DeleteAkinatorNode(string_t *startString, binTreeNode_t **nodePtr);
+errorStatus_e OutTreeToFile(binTree_t *tree, const char *fileToWriteTo);
+errorStatus_e OutNodeToFile(binTreeNode_t *node, FILE *outFile);
+
 
 #endif

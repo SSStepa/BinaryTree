@@ -1,11 +1,11 @@
 #include "../include/search.h"
 
-WORK_RES AddNodeToSortedTree(binTree_t *tree, binTreeNodeVal_t val)
+errorStatus_e AddNodeToSortedTree(binTree_t *tree, binTreeNodeVal_t val)
 {
     assert(tree);
 
     $INFO("Starting adding new node to tree <%s>", tree -> debuggingData.variableName);
-    WORK_RES statusCode = OK;
+    errorStatus_e statusCode = OK;
 
     binTreeNode_t **ptrToConnect = 0;
 
@@ -16,7 +16,7 @@ WORK_RES AddNodeToSortedTree(binTree_t *tree, binTreeNodeVal_t val)
     return statusCode;
 }
 
-WORK_RES FindPlaceToConnect(binTreeNode_t **node, binTreeNode_t ***ptrToConnect, binTreeNodeVal_t val)
+errorStatus_e FindPlaceToConnect(binTreeNode_t **node, binTreeNode_t ***ptrToConnect, binTreeNodeVal_t val)
 {
     if (!*node) {
     *ptrToConnect = node;

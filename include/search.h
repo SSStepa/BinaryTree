@@ -8,8 +8,8 @@ typedef double binTreeNodeVal_t;
 #define TREE_PRINTF_STRING "%lg"
 #include "binTree.h"
 
-WORK_RES AddNodeToSortedTree(binTree_t *tree, binTreeNodeVal_t val);
+errorStatus_e AddNodeToSortedTree(binTree_t *tree, binTreeNodeVal_t val);
 
-WORK_RES FindPlaceToConnect(binTreeNode_t **node, binTreeNode_t ***ptrToConnect, binTreeNodeVal_t val);
+errorStatus_e FindPlaceToConnect(binTreeNode_t **node, binTreeNode_t ***ptrToConnect, binTreeNodeVal_t val);
 
 #endif

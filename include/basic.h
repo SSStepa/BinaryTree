@@ -24,7 +24,7 @@
 /**
  * @brief Work of function available results.
  */
-enum WORK_RES {
+enum errorStatus_e {
     OK       = 0, // all good
     WRIN     = 1, // function got bad args
     NOMEM    = 2, // not enough memory
@@ -94,6 +94,7 @@ bool IsZero(double x);
  * define to translate name of something into string (usually is used for debugging)
  */
 #define TO_STR(str) #str
+#define NUM_TO_STR(num) TO_STR(num)
 
 /**
  * basic log file name
@@ -116,7 +117,7 @@ struct debuggingInfo_t{
     int         lineCreationNumber;     // number of line where object was created 
 
     const char *errorText;              // error message if error had occurred
-    WORK_RES    err;                    // error code 
+    errorStatus_e    err;                    // error code 
 };
 
 #define INIT_DEBUGGING_INFO(debuggingDataStruct, variableName, fileCreationName, functionCreationName, lineCreationNumber)    \
@@ -147,16 +148,16 @@ void InfoPrintfLlu      (size_t var, const char *varName, const char *file, int 
  * begining of new log session
  * prints divider form previous info
  */
-WORK_RES SetUpLog();
+errorStatus_e SetUpLog();
 
 /**
  * ending of log session(prints line that all good)
  */
-WORK_RES EndLog();
+errorStatus_e EndLog();
 
-WORK_RES LogPrintf(const char *messageType, const char *Mess, int line, const char *file, WORK_RES ErrCode, ...);
-WORK_RES StartError();
-WORK_RES EndError();
+errorStatus_e LogPrintf(const char *messageType, const char *Mess, int line, const char *file, errorStatus_e ErrCode, ...);
+errorStatus_e StartError();
+errorStatus_e EndError();
 
 #define $ERR(ErrCode, ErrorMessage, ...)         LogPrintf("<font color=red>ERROR</font>", ErrorMessage, __LINE__, __FILE__, ErrCode, ##__VA_ARGS__)
 #define $INFO(InfoMessage, ...)           ON_DBG(LogPrintf("<font color=blue>INFO</font>", InfoMessage, __LINE__, __FILE__, OK,  ##__VA_ARGS__))
@@ -181,7 +182,7 @@ WORK_RES EndError();
 
 #define MY_ASSERT(...) \
     if (!(__VA_ARGS__)) \
-        return $ERR("MY ASSERTION FAILED: WRONG INPUT TO FUNCTION", WRIN); 
+        return $ERR(WRIN, "MY ASSERTION FAILED: WRONG INPUT TO FUNCTION"); 
 #else
 #define ON_DBG(...) 
 
@@ -190,12 +191,24 @@ WORK_RES EndError();
 
 const char *const OPTS = "i:o:h";
 
-WORK_RES GetFileFull(const char *fileName, string_t *string);
-WORK_RES GetFileFullBin(const char *fileName, string_t *string);
+errorStatus_e GetFileFull(const char *fileName, string_t *string);
+errorStatus_e GetFileFullBin(const char *fileName, string_t *string);
 
-WORK_RES FlagsParse(int argc, char *const *argv, const char **FileToReadFrom, const char **FileToWriteTo);
+errorStatus_e FlagsParse(int argc, char *const *argv, const char **FileToReadFrom, const char **FileToWriteTo);
 void ShowHelp();
 
-WORK_RES InitLogDir();
+errorStatus_e InitLogDir();
+
+errorStatus_e ClearBuffer();
+
+const int INIT_GETLINE_BUFF = 128;
+
+/// @brief my realization of getline
+/// WARNING: doesnot add '\n' in the end
+/// @param lineToWritePtr [out] line to write data in 
+/// @param buffLen [out] length of dynamic line
+/// @param stream [in] file to get chars from
+/// @return length of line or -1 if error
+ssize_t my_getline(char **lineToWritePtr, size_t *buffLen, FILE *stream);
 
 #endif
