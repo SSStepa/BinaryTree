@@ -41,7 +41,7 @@ errorStatus_e CheckSymbolAndMove(char **ptrLineToCheck, char Symbol);
 errorStatus_e Guess(binTree_t *tree);
 errorStatus_e AddUnknownWord(binTreeNode_t *prevNode, binTreeNode_t *node);
 
-errorStatus_e Define(binTree_t *tree);
+errorStatus_e Define(binTree_t *tree); 
 errorStatus_e GiveDefinitionTo(binTree_t *tree, treeWordQuality_t *inWord);
 errorStatus_e FindNodeQualities(binTreeNode_t *node, treeWordQuality_t *inWord);
 errorStatus_e OutStackOfQualities(treeWordQuality_t *wordToDef);

@@ -81,7 +81,9 @@ errorStatus_e TreeDump(const binTree_t *tree)
     fclose(graphvizOutFile);
 
     char commandName[COMMAND_MAX_LEN] = {};
-    sprintf(commandName, "\"\"C:\\Program Files\\Graphviz\\bin\\dot.exe\" .\\%s -Tpng -o .\\%s%zu.png\"", GRAPHVIZ_TEXT_FILE, GRAPHVIZ_OUT_BASE, dumpNumber);
+    sprintf(commandName, "iconv -f CP1251 -t UTF-8 %s >RECODE%s", GRAPHVIZ_TEXT_FILE, GRAPHVIZ_TEXT_FILE);
+    system(commandName);
+    sprintf(commandName, "\"\"C:\\Program Files\\Graphviz\\bin\\dot.exe\" RECODE%s -Tpng -o .\\%s%zu.png\"", GRAPHVIZ_TEXT_FILE, GRAPHVIZ_OUT_BASE, dumpNumber);
     system(commandName);
 
     LOG_END();

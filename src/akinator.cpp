@@ -1,3 +1,6 @@
+#define  TX_USE_SPEAK
+#include "TXLib.h"
+
 typedef char * binTreeNodeVal_t;
 #define TREE_PRINTF_STRING "%s"
 
@@ -7,8 +10,6 @@ typedef char * binTreeNodeVal_t;
 
 int main(int argc, char *const * argv)
 {
-    SetConsoleCP(CP_UTF8);
-    SetConsoleOutputCP(CP_UTF8);
 
     InitLogDir();
 
@@ -35,7 +36,7 @@ errorStatus_e Akinator(const char *fileToReadFrom, const char *fileToWriteTo)
     string_t inString = {};
     RUN_COMMAND(TakeDataAndInitTree(fileToReadFrom, &tree, &inString), "ERROR WHILE TRYING TO GET DATA");
 
-    printf("РџСЂРёРІРµС‚. РЇ РђРєРёРЅР°С‚РѕСЂ Рё СЏ РјРѕРіСѓ СѓРіР°РґР°С‚СЊ С‚РІРѕС‘ СЃР»РѕРІРѕ Рё РјРЅРѕРіРѕ С‡РµРіРѕ РµС‰С‘:\n");
+    txSpeak("\vПривет. Я Акинатор и я могу угадать твоё слово и много чего ещё:\n");
 
     while(true) {
         int userAns = 0;
@@ -53,7 +54,7 @@ errorStatus_e Akinator(const char *fileToReadFrom, const char *fileToWriteTo)
         case QUIT:      return QuitProgram(&tree, &inString, fileToWriteTo);
 
         default:
-            printf(RED "РўР°РєРѕР№ РєРѕРјР°РЅРґС‹ РЅРµС‚... РЈРІРёРґРёРјСЃСЏ РІ СЃР»РµРґСѓСЋС‰РёР№ СЂР°Р·\n" COLOR_RESET);
+            printf(RED "Такой команды нет... Увидимся в следующий раз\n" COLOR_RESET);
             return $ERR(WRIN, "UNEXPECTED CHARACTER %d GOT", userAns);
         }
     }
@@ -65,12 +66,12 @@ errorStatus_e ChooseGameMode(int *userChoose)
 
     errorStatus_e statusCode = OK;
 
-    printf("g - РЈРіР°РґР°СЋ СЃР»РѕРІРѕ\n");
-    printf("d - Р”Р°Рј РѕРїСЂРµРґРµР»РµРЅРёРµ Р·Р°РґСѓРјР°РЅРЅРѕРјСѓ СЃР»РѕРІСѓ\n");
-    printf("c - РЎСЂР°РІРЅСЋ РґРІР° РІС‹Р±СЂР°РЅРЅС‹С… С‚РѕР±РѕР№ СЃР»РѕРІР°\n");
-    printf("o - Р’С‹РІРµРґСѓ РґРµСЂРµРІРѕ РѕС‚РІРµС‚РѕРІ\n");
-    printf("q - Р—Р°РєРѕРЅС‡Сѓ СЂР°Р±РѕС‚Сѓ РґР°Р¶Рµ РЅРµ РЅР°С‡Р°РІ((\n");
-    printf("Р’Р°С€ РѕС‚РІРµС‚: ");
+    txSpeak("\v\ag - Угадаю слово\n");
+    txSpeak("\v\ad - Дам определение задуманному слову\n");
+    txSpeak("\v\ac - Сравню два выбранных тобой слова\n");
+    txSpeak("\v\ao - Выведу дерево ответов\n");
+    txSpeak("\v\aq - Закончу работу даже не начав((\n");
+    txSpeak("\vВаш ответ: ");
 
     RUN_COMMAND(GetUserAnsInOneChar(userChoose), "PROBLEM WHILE CHOOSING GAME MODE");
     
@@ -168,13 +169,13 @@ errorStatus_e Guess(binTree_t *tree)
     $INFO("Starting guessing process");
     errorStatus_e statusCode = OK;
 
-    printf("РћС‚РІРµС‡Р°Р№ y(Р”Р°) РёР»Рё n(РќРµС‚) РЅР° РјРѕРё РІРѕРїСЂРѕСЃС‹. Р’ РєРѕРЅС†Рµ С‚С‹ РїРѕР»СѓС‡РёС€СЊ РѕС‚РІРµС‚...\n");
+    txSpeak("\vОтвечай y(Да) или n(Нет) на мои вопросы. В конце ты получишь ответ...\n");
     binTreeNode_t *node = tree -> data;
     binTreeNode_t *prevNode = 0;
     int ans = 0;
 
     while (node -> left != NULL) {
-        printf("%s? ", node -> val);
+        txSpeak("\v%s? ", node -> val);
 
         RUN_COMMAND(GetUserAnsInOneChar(&ans), "PROBLEM WHILE GETTING Y/N ANSWER IN GUESSING");
         prevNode = node;
@@ -190,16 +191,20 @@ errorStatus_e Guess(binTree_t *tree)
         }
     }
 
-    printf("Р­С‚Рѕ %s? ", node -> val);
+    txSpeak("\vЭто %s? ", node -> val);
 
     RUN_COMMAND(GetUserAnsInOneChar(&ans), "PROBLEM WHILE GETTING Y/N ANSWER IN GUESSING");
     switch (ans) {
         case YES:
-            printf(GRN "РќСѓ СЏ Р¶Рµ РіРѕРІРѕСЂРёР»\n" COLOR_RESET);
+            printf(GRN);
+            txSpeak("\vНу я же говорил\n");
+            printf(COLOR_RESET);
             return OK;
         case NO:
             RUN_COMMAND(AddUnknownWord(prevNode, node), "PROBLEM WHILE ADDING NEW NODE");
-            printf(YEL "Р’ СЃР»РµРґСѓСЋС‰РёР№ СЂР°Р· РЅРµ РїСЂРѕРІРµРґС‘С€СЊ\n" COLOR_RESET);
+            printf(YEL);
+            txSpeak("\vВ следующий раз не проведёшь\n");
+            printf(COLOR_RESET);
             return OK;
         default:
             return $ERR(WRIN, "WRONG USER INPUT IN CHOOSING THE WORD");
@@ -217,13 +222,13 @@ errorStatus_e AddUnknownWord(binTreeNode_t *prevNode, binTreeNode_t *node)
     char *newQuestion = NULL;
     size_t buffLen    = 0;
 
-    printf("Р§С‚Рѕ Р¶Рµ С‚С‹ Р·Р°РіР°РґР°Р»(Р°): ");
+    txSpeak("\vЧто же ты загадал(а): ");
     if (my_getline(&newObject, &buffLen, stdin) == -1)
         return $ERR(NOMEM, "NOT ENOUGH MEMORY FOR NEW STRING");
 
     buffLen = 0; 
 
-    printf("Рђ С‡РµРј %s РѕС‚Р»РёС‡Р°РµС‚СЃСЏ РѕС‚ %s РѕРЅ: ", newObject, node -> val);
+    txSpeak("\vА чем %s отличается от %s он: ", newObject, node -> val);
     if (my_getline(&newQuestion, &buffLen, stdin) == -1)
         return $ERR(NOMEM, "NOT ENOUGH MEMORY FOR NEW STRING");
 
@@ -253,7 +258,7 @@ errorStatus_e Define(binTree_t *tree)
     treeWordQuality_t inWord = {};
     STACK_CTOR(&(inWord.descriptionStack), INIT_STACK_CAPACITY);
 
-    printf("Р С‚С‹ С…РѕС‡РµС€СЊ С‡С‚Рѕ Р±С‹ СЏ РѕРїСЂРµРґРµР»РёР»: ");
+    txSpeak("\vИ ты хочешь что бы я определил: ");
     scanf("%" NUM_TO_STR(MAX_ANS_LEN) "[^\n]", inWord.word);
     ClearBuffer();
 
@@ -274,10 +279,10 @@ errorStatus_e Compare(binTree_t *tree)
     STACK_CTOR(&(firstInWord.descriptionStack), INIT_STACK_CAPACITY);
     STACK_CTOR(&(secondInWord.descriptionStack), INIT_STACK_CAPACITY);
 
-    printf("РџРµСЂРІРѕРµ СЃР»РѕРІРѕ РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ: ");
+    txSpeak("\vПервое слово для сравнения: ");
     scanf("%" NUM_TO_STR(MAX_ANS_LEN) "[^\n]", firstInWord.word);
     ClearBuffer();
-    printf("Р’С‚РѕСЂРѕРµ СЃР»РѕРІРѕ РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ: ");
+    txSpeak("\vВторое слово для сравнения: ");
     scanf("%" NUM_TO_STR(MAX_ANS_LEN) "[^\n]", secondInWord.word);
     ClearBuffer();
 
@@ -357,7 +362,9 @@ errorStatus_e ShowTreeInGraphviz(const binTree_t *tree)
     fclose(graphvizOutFile);
 
     char commandName[COMMAND_MAX_LEN] = {};
-    sprintf(commandName, "\"\"C:\\Program Files\\Graphviz\\bin\\dot.exe\" .\\%s -Tpng -o .\\%s.png\"", GRAPHVIZ_TEXT_FILE, "SHOW_TREE");
+    sprintf(commandName, "iconv -f CP1251 -t UTF-8 %s >RECODE%s", GRAPHVIZ_TEXT_FILE, GRAPHVIZ_TEXT_FILE);
+    system(commandName);
+    sprintf(commandName, "\"\"C:\\Program Files\\Graphviz\\bin\\dot.exe\" RECODE%s -Tpng -o .\\%s.png\"", GRAPHVIZ_TEXT_FILE, "SHOW_TREE");
     system(commandName);
     system("SHOW_TREE.png");
 
@@ -375,9 +382,9 @@ errorStatus_e TreeNodeShow(const binTreeNode_t *node, FILE *outGraphvizFile)
 
     fprintf(outGraphvizFile, "N%p [shape=Mrecord, label=\"{" TREE_PRINTF_STRING "}\", fillcolor=\"#C0C0FF\" color=\"#000080\"]\n", node, node -> val);
     if (node -> left)
-        fprintf(outGraphvizFile, "N%p -> N%p[color=\"#00ff22\", label=\"Р”Р°\"]\n", node, node -> left);
+        fprintf(outGraphvizFile, "N%p -> N%p[color=\"#00ff22\", label=\"Да\"]\n", node, node -> left);
     if (node -> right)
-        fprintf(outGraphvizFile, "N%p -> N%p[color=\"#fd4800\", label=\"РќРµС‚\"]\n", node, node -> right);
+        fprintf(outGraphvizFile, "N%p -> N%p[color=\"#fd4800\", label=\"Нет\"]\n", node, node -> right);
     else
         fprintf(outGraphvizFile, "N%p [color=\"#00561e\", fillcolor=\"#92ff84\"]", node);
     
@@ -416,7 +423,9 @@ errorStatus_e GiveDefinitionTo(binTree_t *tree, treeWordQuality_t *wordToDef)
     errorStatus_e statusCode = OK;
 
     if (FindNodeQualities(tree -> data, wordToDef) != OK) {
-        printf(RED "РЎР»РѕРІР° РєРѕС‚РѕСЂРѕРµ С‚С‹ РІРІС‘Р» РЅРµС‚ РІ РјРѕРµР№ Р±Р°Р·Рµ\n" COLOR_RESET);
+        printf(RED);
+        txSpeak("\vСлова которое ты ввёл нет в моей базе\n");
+        printf(COLOR_RESET);
         return OK;
     }
  
@@ -436,11 +445,15 @@ errorStatus_e CimpareTwoWords(binTree_t *tree, treeWordQuality_t *firstWord, tre
     errorStatus_e statusCode = OK;
     
     if (FindNodeQualities(tree -> data, firstWord) != OK) {
-        printf(RED "РЎР»РѕРІР° <%s> РЅРµС‚ РІ РјРѕРµР№ Р±Р°Р·Рµ" COLOR_RESET, firstWord -> word);
+        printf(RED);
+        txSpeak("\vСлова <%s> нет в моей базе", firstWord -> word);
+        printf(COLOR_RESET);
         return OK;
     }
     if (FindNodeQualities(tree -> data, secondWord) != OK) {
-        printf(RED "РЎР»РѕРІР° <%s> РЅРµС‚ РІ РјРѕРµР№ Р±Р°Р·Рµ" COLOR_RESET, secondWord -> word);
+        printf(RED);
+        txSpeak("\vСлова <%s> нет в моей базе", secondWord -> word);
+        printf(COLOR_RESET);
         return OK;
     }
 
@@ -448,27 +461,29 @@ errorStatus_e CimpareTwoWords(binTree_t *tree, treeWordQuality_t *firstWord, tre
     char *secondQuality = 0;
     if ((firstWord -> descriptionStack).size != 0 && (secondWord -> descriptionStack).size != 0 && 
             strcmp(firstWord -> word, secondWord -> word) == 0) {
-        printf(GRN "РћРЅРё РѕР±Р°: " COLOR_RESET);
+        printf(GRN);
+        txSpeak("\vОни оба: ");
+        printf(COLOR_RESET);
         do {
             RUN_COMMAND(STACK_POP(&(firstWord -> descriptionStack), &firstQuality), "ERROR WHILE TRYING TO POP DATA FROM STACK TO FIRST");
             RUN_COMMAND(STACK_POP(&(secondWord -> descriptionStack), &secondQuality), "ERROR WHILE TRYING TO POP DATA FROM STACK TO SECOND");
             assert(firstQuality);
             assert(secondQuality);
 
-            printf("%s", firstQuality);
+            txSpeak("\v%s", firstQuality);
         } while((firstWord -> descriptionStack).size != 0 && (secondWord -> descriptionStack).size != 0 && 
             strcmp(firstWord -> word, secondWord -> word) == 0);
     
         printf("\b\b  \n");
     } else 
-        printf("РЈ РЅРёС… РЅРµС‚ РћР±С‰РёС… С‡РµСЂС‚\n");
+        txSpeak("\vУ них нет Общих черт\n");
 
     if ((firstWord -> descriptionStack).size != 0) { 
-        printf("РќРѕ ");
+        txSpeak("\vНо ");
         RUN_COMMAND(OutStackOfQualities(firstWord), "PROBLEM WHILE OUTING FIRST WORD STACK");
     }
     if ((secondWord -> descriptionStack).size != 0) { 
-        printf("A ");
+        txSpeak("\vA ");
         RUN_COMMAND(OutStackOfQualities(secondWord), "PROBLEM WHILE OUTING SECOND WORD STACK");
     }
     
@@ -483,13 +498,15 @@ errorStatus_e OutStackOfQualities(treeWordQuality_t *wordToDef)
     errorStatus_e statusCode = OK;
 
     if ((wordToDef -> descriptionStack).size != 0) {
-        printf(GRN "%s" COLOR_RESET ": ", wordToDef -> word);
+        printf(GRN);
+        txSpeak("\v%s", wordToDef -> word);
+        printf(COLOR_RESET ": ");
         char *quality = 0;
         do {
             RUN_COMMAND(STACK_POP(&(wordToDef -> descriptionStack), &quality), "ERROR WHILE TRYING TO POP DATA FROM STACK");
             assert(quality);
 
-            printf("%s", quality);
+            txSpeak("\v%s", quality);
         } while((wordToDef -> descriptionStack).size != 0);
 
         printf("\b\b  \n");
@@ -514,7 +531,7 @@ errorStatus_e FindNodeQualities(binTreeNode_t *node, treeWordQuality_t *inWord)
         if (FindNodeQualities(node -> right, inWord) == OK) {
             STACK_PUSH(&(inWord -> descriptionStack), (char *) ", ");
             STACK_PUSH(&(inWord -> descriptionStack), node -> val);
-            STACK_PUSH(&(inWord -> descriptionStack), (char *) "РЅРµ ");
+            STACK_PUSH(&(inWord -> descriptionStack), (char *) "не ");
             return OK;
         }
 
