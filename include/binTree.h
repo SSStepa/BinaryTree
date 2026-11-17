@@ -49,20 +49,6 @@ errorStatus_e TreeCtor(binTree_t *tree ON_DBG(, const char *variableName, const 
 errorStatus_e TreeDtor(binTree_t *tree);
 
 /**
- * Verify of tree as whole. Also calls TreeNodeVerify
- * 
- * @param [in] tree pointer to tree for to verify
- */
-errorStatus_e TreeVerify(const binTree_t *tree);
-
-/**
- * Verify of one node. recursively calls itself while all tree is not verified 
- * 
- * @param [in] node node to verify.
- */
-errorStatus_e TreeNodeVerify(const binTreeNode_t *node);
-
-/**
  * Dump for all Tree. Calls recursive TreeNodeDump for all tree. 
  * 
  * @param [in] tree tree to dump
