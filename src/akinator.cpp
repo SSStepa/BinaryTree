@@ -459,24 +459,32 @@ errorStatus_e CimpareTwoWords(binTree_t *tree, treeWordQuality_t *firstWord, tre
 
     char *firstQuality = 0;
     char *secondQuality = 0;
-    if ((firstWord -> descriptionStack).size != 0 && (secondWord -> descriptionStack).size != 0 && 
-            strcmp(firstWord -> word, secondWord -> word) == 0) {
-        printf(GRN);
-        txSpeak("\vОни оба: ");
-        printf(COLOR_RESET);
-        do {
-            RUN_COMMAND(STACK_POP(&(firstWord -> descriptionStack), &firstQuality), "ERROR WHILE TRYING TO POP DATA FROM STACK TO FIRST");
-            RUN_COMMAND(STACK_POP(&(secondWord -> descriptionStack), &secondQuality), "ERROR WHILE TRYING TO POP DATA FROM STACK TO SECOND");
-            assert(firstQuality);
-            assert(secondQuality);
+    $str(firstWord ->word);
+    $str(secondWord -> word);
+    bool hasCommonQualities = false;
+    while ((firstWord->descriptionStack).size > 0 && (secondWord->descriptionStack).size > 0) {
+        RUN_COMMAND(STACK_POP(&(firstWord->descriptionStack), &firstQuality), "ERROR POP FIRST");
+        RUN_COMMAND(STACK_POP(&(secondWord->descriptionStack), &secondQuality), "ERROR POP SECOND");
 
-            txSpeak("\v%s", firstQuality);
-        } while((firstWord -> descriptionStack).size != 0 && (secondWord -> descriptionStack).size != 0 && 
-            strcmp(firstWord -> word, secondWord -> word) == 0);
-    
-        printf("\b\b  \n");
-    } else 
-        txSpeak("\vУ них нет Общих черт\n");
+        if (strcmp(firstQuality, secondQuality) == 0) {
+            if (!hasCommonQualities) {
+                printf(GRN);
+                txSpeak("\vОни оба: ");
+                printf(COLOR_RESET);
+                hasCommonQualities = true;
+            }
+            txSpeak("\v%s, ", firstQuality);
+        } else {
+            RUN_COMMAND(STACK_PUSH(&(firstWord->descriptionStack), firstQuality), "ERROR PUSH FIRST");
+            RUN_COMMAND(STACK_PUSH(&(secondWord->descriptionStack), secondQuality), "ERROR PUSH SECOND");
+            break;
+        }
+    }
+    if (hasCommonQualities) {
+        printf("\b\b\b\b \n");
+    } else {
+        txSpeak("\vУ них нет общих черт\n");
+    }
 
     if ((firstWord -> descriptionStack).size != 0) { 
         txSpeak("\vНо ");
