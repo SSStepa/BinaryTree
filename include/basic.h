@@ -54,6 +54,7 @@ struct string_t {
 };
 
 
+const char *const MY_LOG_FOLDER = "logs";
 
 /**
  * used to check that function run correctly

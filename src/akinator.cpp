@@ -1,16 +1,16 @@
 #define  TX_USE_SPEAK
 #include "TXLib.h"
 
-typedef char * binTreeNodeVal_t;
+typedef char* binTreeNodeVal_t;
 #define TREE_PRINTF_STRING "%s"
 
 #include "binTree.cpp"
 #include "../include/akinator.h"
 #include <windows.h>
+#include <stdarg.h>
 
 int main(int argc, char *const * argv)
 {
-
     InitLogDir();
 
     errorStatus_e statusCode = OK;
@@ -36,7 +36,8 @@ errorStatus_e Akinator(const char *fileToReadFrom, const char *fileToWriteTo)
     string_t inString = {};
     RUN_COMMAND(TakeDataAndInitTree(fileToReadFrom, &tree, &inString), "ERROR WHILE TRYING TO GET DATA");
 
-    txSpeak("\vПривет. Я Акинатор и я могу угадать твоё слово и много чего ещё:\n");
+    RUN_COMMAND(InitOutWindow(), "PROBLEM WHILE WINDOWS CREATION");
+    RUN_COMMAND(ShowTextInWindow("Привет. Я Акинатор и я могу угадать твоё слово и много чего ещё:\n"), "Problem while showing greeting");
 
     while(true) {
         int userAns = 0;
@@ -52,7 +53,7 @@ errorStatus_e Akinator(const char *fileToReadFrom, const char *fileToWriteTo)
         case SHOW_TREE: RUN_COMMAND(ShowTreeInGraphviz(&tree), "PROBLEM WHILE SHOWING TREE");
             break;
         case QUIT:      return QuitProgram(&tree, &inString, fileToWriteTo);
-
+        case WRONG_INPUT: continue;
         default:
             printf(RED "Такой команды нет... Увидимся в следующий раз\n" COLOR_RESET);
             return $ERR(WRIN, "UNEXPECTED CHARACTER %d GOT", userAns);
@@ -64,16 +65,21 @@ errorStatus_e ChooseGameMode(int *userChoose)
 {
     assert(userChoose);
 
-    errorStatus_e statusCode = OK;
-
-    txSpeak("\v\ag - Угадаю слово\n");
-    txSpeak("\v\ad - Дам определение задуманному слову\n");
-    txSpeak("\v\ac - Сравню два выбранных тобой слова\n");
-    txSpeak("\v\ao - Выведу дерево ответов\n");
-    txSpeak("\v\aq - Закончу работу даже не начав((\n");
-    txSpeak("\vВаш ответ: ");
-
-    RUN_COMMAND(GetUserAnsInOneChar(userChoose), "PROBLEM WHILE CHOOSING GAME MODE");
+    ShowTextInWindow("Выбирай режим:");
+    while(txMouseButtons() != 1) {
+        size_t ind = 0;
+        while(MENU_BUTTONS[ind].sizeX != 0) {
+            if (MouseIsInButton(MENU_BUTTONS[ind]))  CreateButton(MENU_BUTTONS[ind], TX_CYAN);
+            else                                   CreateButton(MENU_BUTTONS[ind], TX_LIGHTCYAN);
+            ind++;
+        }
+    }
+    if      (MouseIsInButton(MENU_BUTTONS[0]))  *userChoose = GUESS;        // guess
+    else if (MouseIsInButton(MENU_BUTTONS[1]))  *userChoose = DEFINE;       // define
+    else if (MouseIsInButton(MENU_BUTTONS[2]))  *userChoose = SHOW_TREE;    // out tree
+    else if (MouseIsInButton(MENU_BUTTONS[3]))  *userChoose = COMPARE;      // compare
+    else if (MouseIsInButton(MENU_BUTTONS[4]))  *userChoose = QUIT;         // quit
+    else                                        *userChoose = WRONG_INPUT;  // wrong input
     
     return OK;
 }
@@ -169,46 +175,74 @@ errorStatus_e Guess(binTree_t *tree)
     $INFO("Starting guessing process");
     errorStatus_e statusCode = OK;
 
-    txSpeak("\vОтвечай y(Да) или n(Нет) на мои вопросы. В конце ты получишь ответ...\n");
+    txSetFillColor(TX_WHITE);
+    txClear();
+    ShowTextInWindow("Отвечай Да или Нет на мои вопросы. В конце ты получишь ответ...\n");
+
     binTreeNode_t *node = tree -> data;
     binTreeNode_t *prevNode = 0;
+
+    RUN_COMMAND(FindWordToCheck(&node, &prevNode), "PROBLEM WHILE FINDING ELEMENT IN TREE");
+
+    txSetFillColor(TX_WHITE);
+    txClear();
+    ShowTextInWindow("Это %s? ", node -> val);
+
     int ans = 0;
-
-    while (node -> left != NULL) {
-        txSpeak("\v%s? ", node -> val);
-
-        RUN_COMMAND(GetUserAnsInOneChar(&ans), "PROBLEM WHILE GETTING Y/N ANSWER IN GUESSING");
-        prevNode = node;
-        switch (ans) {
-        case YES:
-            node = node -> left;
-            break;
-        case NO:
-            node = node -> right;
-            break;
-        default:
-            return $ERR(WRIN, "UNEXPECTED ANSWER TO MY QUESTION %c", ans);
+    while (!(txMouseButtons() == 1 && (MouseIsInButton(Y_N_BUTTON[0]) || MouseIsInButton(Y_N_BUTTON[1])))) {
+        size_t ind = 0;
+        while(Y_N_BUTTON[ind].sizeX != 0) {
+            if (MouseIsInButton(Y_N_BUTTON[ind]))  CreateButton(Y_N_BUTTON[ind], TX_CYAN);
+            else                                   CreateButton(Y_N_BUTTON[ind], TX_LIGHTCYAN);
+            ind++;
         }
     }
+    if      (MouseIsInButton(Y_N_BUTTON[0])) ans = 'y';
+    else if (MouseIsInButton(Y_N_BUTTON[1])) ans = 'n';
+    else return $ERR(WRIN, "UNEXPECTED BUTTON PRESS");
 
-    txSpeak("\vЭто %s? ", node -> val);
-
-    RUN_COMMAND(GetUserAnsInOneChar(&ans), "PROBLEM WHILE GETTING Y/N ANSWER IN GUESSING");
+    txSetFillColor(TX_WHITE);
+    txClear();
     switch (ans) {
         case YES:
-            printf(GRN);
-            txSpeak("\vНу я же говорил\n");
-            printf(COLOR_RESET);
+            ShowTextInWindow("Ну я же говорил\n");
             return OK;
         case NO:
             RUN_COMMAND(AddUnknownWord(prevNode, node), "PROBLEM WHILE ADDING NEW NODE");
-            printf(YEL);
-            txSpeak("\vВ следующий раз не проведёшь\n");
-            printf(COLOR_RESET);
+            ShowTextInWindow("В следующий раз не проведёшь\n");
             return OK;
         default:
             return $ERR(WRIN, "WRONG USER INPUT IN CHOOSING THE WORD");
     }
+}
+
+errorStatus_e FindWordToCheck(binTreeNode_t **node, binTreeNode_t **prevNode)
+{
+    assert(node);
+    assert(*node);
+    assert(prevNode);
+
+    while ((*node) -> left != NULL) {
+        txSetFillColor(TX_WHITE);
+        txClear();
+        ShowTextInWindow("%s? ", (*node) -> val);
+
+        while (!(txMouseButtons() == 1 && (MouseIsInButton(Y_N_BUTTON[0]) || MouseIsInButton(Y_N_BUTTON[1])))) {
+            size_t ind = 0;
+            while(Y_N_BUTTON[ind].sizeX != 0) {
+                if (MouseIsInButton(Y_N_BUTTON[ind]))  CreateButton(Y_N_BUTTON[ind], TX_CYAN);
+                else                                   CreateButton(Y_N_BUTTON[ind], TX_LIGHTCYAN);
+                ind++;
+            }
+        }
+
+        *prevNode = *node;
+        if      (MouseIsInButton(Y_N_BUTTON[0])) *node = (*node) -> left;
+        else if (MouseIsInButton(Y_N_BUTTON[1])) *node = (*node) -> right;
+        else return $ERR(WRIN, "UNEXPECTED BUTTON PRESS");
+    }
+
+    return OK;
 }
 
 errorStatus_e AddUnknownWord(binTreeNode_t *prevNode, binTreeNode_t *node)
@@ -220,17 +254,15 @@ errorStatus_e AddUnknownWord(binTreeNode_t *prevNode, binTreeNode_t *node)
 
     char *newObject   = NULL;
     char *newQuestion = NULL;
-    size_t buffLen    = 0;
 
-    txSpeak("\vЧто же ты загадал(а): ");
-    if (my_getline(&newObject, &buffLen, stdin) == -1)
-        return $ERR(NOMEM, "NOT ENOUGH MEMORY FOR NEW STRING");
+    txSetColor(TX_WHITE);
+    txClear();
 
-    buffLen = 0; 
+    ShowTextInWindow("Что же ты загадал(а): ");
+    newObject = strdup(txInputBox("Что же ты загадал(а): ", "akinator", "непонятно кто"));
 
-    txSpeak("\vА чем %s отличается от %s он: ", newObject, node -> val);
-    if (my_getline(&newQuestion, &buffLen, stdin) == -1)
-        return $ERR(NOMEM, "NOT ENOUGH MEMORY FOR NEW STRING");
+    ShowTextInWindow("А чем %s отличается от %s он: ", newObject, node -> val);
+    newQuestion = strdup(txInputBox("Он:", "akinator", "ничем"));
 
     binTreeNode_t *connectionPlace = 0;
     if (prevNode -> left == node) {
@@ -258,11 +290,16 @@ errorStatus_e Define(binTree_t *tree)
     treeWordQuality_t inWord = {};
     STACK_CTOR(&(inWord.descriptionStack), INIT_STACK_CAPACITY);
 
-    txSpeak("\vИ ты хочешь что бы я определил: ");
-    scanf("%" NUM_TO_STR(MAX_ANS_LEN) "[^\n]", inWord.word);
-    ClearBuffer();
+    txSetFillColor(TX_WHITE);
+    txClear();
+    ShowTextInWindow("И ты хочешь что бы я определил: ");
+
+    inWord.word = strdup(txInputBox("Определить: ", "akinator"));
 
     RUN_COMMAND(GiveDefinitionTo(tree, &inWord), "PROBLEM WHILE GIVING DEFINITION OCCUR");
+
+    StackDtor(&(inWord.descriptionStack));
+    free(inWord.word);
 
     return OK;
 }
@@ -279,14 +316,23 @@ errorStatus_e Compare(binTree_t *tree)
     STACK_CTOR(&(firstInWord.descriptionStack), INIT_STACK_CAPACITY);
     STACK_CTOR(&(secondInWord.descriptionStack), INIT_STACK_CAPACITY);
 
-    txSpeak("\vПервое слово для сравнения: ");
-    scanf("%" NUM_TO_STR(MAX_ANS_LEN) "[^\n]", firstInWord.word);
-    ClearBuffer();
-    txSpeak("\vВторое слово для сравнения: ");
-    scanf("%" NUM_TO_STR(MAX_ANS_LEN) "[^\n]", secondInWord.word);
-    ClearBuffer();
+    txSetFillColor(TX_WHITE);
+    txClear();
+    ShowTextInWindow("Первое слово для сравнения: ");
+    firstInWord.word = strdup(txInputBox("Первое слово:", "akinator"));
+
+    txSetFillColor(TX_WHITE);
+    txClear();
+    ShowTextInWindow("Второе слово для сравнения: ");
+    secondInWord.word = strdup(txInputBox("Второе слово:", "akinator"));
 
     RUN_COMMAND(CimpareTwoWords(tree, &firstInWord, &secondInWord), "PROBLEM WHILE COMPARING");
+
+    StackDtor(&(firstInWord.descriptionStack));
+    StackDtor(&(secondInWord.descriptionStack));
+
+    free(firstInWord.word);
+    free(secondInWord.word);
 
     $INFO("ending comparing two words");
     return OK;
@@ -301,10 +347,10 @@ errorStatus_e QuitProgram(binTree_t *tree, string_t *inString, const char *fileT
     DeleteAkinatorNode(inString, &(tree -> data));
     free(inString -> str);
     
+    txDisableAutoPause(); 
     $INFO("ending process of akinator work");
     return OK;
 }
-
 
 errorStatus_e OutTreeToFile(binTree_t *tree, const char *fileToWriteTo)
 {
@@ -422,17 +468,25 @@ errorStatus_e GiveDefinitionTo(binTree_t *tree, treeWordQuality_t *wordToDef)
     $INFO("starting giving definition to %s", wordToDef -> word);
     errorStatus_e statusCode = OK;
 
-    if (FindNodeQualities(tree -> data, wordToDef) != OK) {
-        printf(RED);
-        txSpeak("\vСлова которое ты ввёл нет в моей базе\n");
-        printf(COLOR_RESET);
-        return OK;
-    }
+    if (GetWordInfoFromTree(tree, wordToDef)) return WRIN;
  
     RUN_COMMAND(OutStackOfQualities(wordToDef), "ERROR WHILE OUTING STACK");
 
     $INFO("ending giving definition to %s", wordToDef -> word);
     return statusCode;
+}
+
+errorStatus_e GetWordInfoFromTree(binTree_t *tree, treeWordQuality_t *wordToDef)
+{
+    assert(tree);
+    assert(wordToDef);
+
+    if (FindNodeQualities(tree -> data, wordToDef) != OK) {
+        ShowTextInWindow("Слова <%s> нет в моей базе", wordToDef -> word);
+        return WRIN;
+    }
+
+    return OK;
 }
 
 errorStatus_e CimpareTwoWords(binTree_t *tree, treeWordQuality_t *firstWord, treeWordQuality_t *secondWord)
@@ -443,57 +497,51 @@ errorStatus_e CimpareTwoWords(binTree_t *tree, treeWordQuality_t *firstWord, tre
 
     $INFO("starting comparing words", firstWord -> word, secondWord -> word);
     errorStatus_e statusCode = OK;
-    
-    if (FindNodeQualities(tree -> data, firstWord) != OK) {
-        printf(RED);
-        txSpeak("\vСлова <%s> нет в моей базе", firstWord -> word);
-        printf(COLOR_RESET);
-        return OK;
-    }
-    if (FindNodeQualities(tree -> data, secondWord) != OK) {
-        printf(RED);
-        txSpeak("\vСлова <%s> нет в моей базе", secondWord -> word);
-        printf(COLOR_RESET);
-        return OK;
-    }
 
-    char *firstQuality = 0;
+    char outLine[MAX_LINE_OF_ELEMS_SIZE] = {};
+    int ind = 0;
+    
+    if (GetWordInfoFromTree(tree, firstWord))  return WRIN;
+    if (GetWordInfoFromTree(tree, secondWord)) return WRIN;
+
+    char *firstQuality  = 0;
     char *secondQuality = 0;
-    $str(firstWord ->word);
-    $str(secondWord -> word);
+
     bool hasCommonQualities = false;
-    while ((firstWord->descriptionStack).size > 0 && (secondWord->descriptionStack).size > 0) {
+
+    while ((firstWord->descriptionStack).size > 1 && (secondWord->descriptionStack).size > 1) {
         RUN_COMMAND(STACK_POP(&(firstWord->descriptionStack), &firstQuality), "ERROR POP FIRST");
         RUN_COMMAND(STACK_POP(&(secondWord->descriptionStack), &secondQuality), "ERROR POP SECOND");
 
         if (strcmp(firstQuality, secondQuality) == 0) {
             if (!hasCommonQualities) {
-                printf(GRN);
-                txSpeak("\vОни оба: ");
-                printf(COLOR_RESET);
+                ind += sprintf(outLine + ind, "Они оба: ");
                 hasCommonQualities = true;
             }
-            txSpeak("\v%s, ", firstQuality);
+            ind += sprintf(outLine + ind, "%s", firstQuality);
         } else {
             RUN_COMMAND(STACK_PUSH(&(firstWord->descriptionStack), firstQuality), "ERROR PUSH FIRST");
             RUN_COMMAND(STACK_PUSH(&(secondWord->descriptionStack), secondQuality), "ERROR PUSH SECOND");
             break;
         }
     }
-    if (hasCommonQualities) {
-        printf("\b\b\b\b \n");
-    } else {
-        txSpeak("\vУ них нет общих черт\n");
-    }
+
+    if (!hasCommonQualities) 
+        ind += sprintf(outLine + ind, "У них нет общих черт ");
 
     if ((firstWord -> descriptionStack).size != 0) { 
-        txSpeak("\vНо ");
-        RUN_COMMAND(OutStackOfQualities(firstWord), "PROBLEM WHILE OUTING FIRST WORD STACK");
+        ind += sprintf(outLine + ind, "\nНо ");
+        RUN_COMMAND(OutStackIntoString(firstWord, &ind, outLine), "PROBLEM WHILE OUTING FIRST WORD STACK");
     }
     if ((secondWord -> descriptionStack).size != 0) { 
-        txSpeak("\vA ");
-        RUN_COMMAND(OutStackOfQualities(secondWord), "PROBLEM WHILE OUTING SECOND WORD STACK");
+        ind += sprintf(outLine + ind, "\nА ");
+        RUN_COMMAND(OutStackIntoString(secondWord, &ind, outLine), "PROBLEM WHILE OUTING SECOND WORD STACK");
     }
+    sprintf(outLine + ind, "\n");
+
+    txSelectFont("Comic Sans MS", USUAL_TEXT_Y_SIZE, USUAL_TEXT_X_SIZE, MAIN_TEXT_BOLD, true);
+    ShowTextInWindow(outLine);
+    txSelectFont("Comic Sans MS", MAIN_TEXT_Y_SIZE, MAIN_TEXT_X_SIZE, MAIN_TEXT_BOLD, true);
     
     $INFO("starting comparing words", firstWord -> word, secondWord -> word);
     return statusCode;
@@ -502,25 +550,46 @@ errorStatus_e CimpareTwoWords(binTree_t *tree, treeWordQuality_t *firstWord, tre
 errorStatus_e OutStackOfQualities(treeWordQuality_t *wordToDef)
 {
     assert(wordToDef);
+
+    char wholeLine[MAX_LINE_OF_ELEMS_SIZE] = {};
+    int ind = 0;
     
     errorStatus_e statusCode = OK;
 
-    if ((wordToDef -> descriptionStack).size != 0) {
-        printf(GRN);
-        txSpeak("\v%s", wordToDef -> word);
-        printf(COLOR_RESET ": ");
-        char *quality = 0;
-        do {
-            RUN_COMMAND(STACK_POP(&(wordToDef -> descriptionStack), &quality), "ERROR WHILE TRYING TO POP DATA FROM STACK");
-            assert(quality);
+   RUN_COMMAND(OutStackIntoString(wordToDef, &ind, &*wholeLine), "problem while outing to line");
 
-            txSpeak("\v%s", quality);
-        } while((wordToDef -> descriptionStack).size != 0);
-
-        printf("\b\b  \n");
-    }
+    sprintf(wholeLine + ind, "\n");
+    
+    txSelectFont("Comic Sans MS", USUAL_TEXT_Y_SIZE, USUAL_TEXT_X_SIZE, MAIN_TEXT_BOLD, true);
+    ShowTextInWindow(wholeLine);
+    txSelectFont("Comic Sans MS", MAIN_TEXT_Y_SIZE, MAIN_TEXT_X_SIZE, MAIN_TEXT_BOLD, true);
 
     return OK;
+}
+
+errorStatus_e OutStackIntoString(treeWordQuality_t *wordToDef, int *ind, char *wholeLine)
+{
+    assert(wordToDef);
+    assert(ind);
+    assert(wholeLine);
+
+    errorStatus_e statusCode = OK;
+
+    if ((wordToDef -> descriptionStack).size != 0) {
+            *ind += sprintf(wholeLine + *ind, "%s", wordToDef -> word);
+            *ind += sprintf(wholeLine + *ind, ": ");
+            char *quality = 0;
+
+            while((wordToDef -> descriptionStack).size != 1) {
+                RUN_COMMAND(STACK_POP(&(wordToDef -> descriptionStack), &quality), "ERROR WHILE TRYING TO POP DATA FROM STACK");
+                assert(quality);
+
+                *ind += sprintf(wholeLine + *ind, "%s", quality);
+                if (*ind == MAX_LINE_OF_ELEMS_SIZE) break;
+            }
+        }
+    
+    return statusCode;
 }
 
 errorStatus_e FindNodeQualities(binTreeNode_t *node, treeWordQuality_t *inWord)
@@ -551,4 +620,74 @@ errorStatus_e FindNodeQualities(binTreeNode_t *node, treeWordQuality_t *inWord)
     }
 
     return WRIN;
+}
+
+errorStatus_e InitOutWindow()
+{
+    txCreateWindow(OUT_WINDOW_X, OUT_WINDOW_Y);
+    txClearConsole();
+
+    txSetFillColor(TX_WHITE);
+    txClear();
+
+    txSetColor(TX_BLACK);
+    txSelectFont("Comic Sans MS", MAIN_TEXT_Y_SIZE, MAIN_TEXT_X_SIZE, MAIN_TEXT_BOLD, true);
+
+    return OK;
+}
+
+errorStatus_e ShowTextInWindow(const char *inString, ...)
+{
+    assert(inString);
+
+    va_list args = {};
+    va_start(args, inString);
+
+    char *outString = (char *) calloc(MAX_IN_STRING_LEN, sizeof(char));
+
+    vsnprintf(outString, MAX_IN_STRING_LEN, inString, args);
+
+    txSetFillColor(TX_WHITE);
+    txSetColor(TX_WHITE);
+    txRectangle(MAIN_START_X, MAIN_START_Y, MAIN_END_X,   MAIN_END_Y);
+    txSetColor(TX_BLACK);
+
+    txDrawText(MAIN_START_X, MAIN_START_Y, 
+               MAIN_END_X,   MAIN_END_Y,
+               outString
+    );
+
+    txSpeak(outString);
+
+    va_end(args);
+
+    return OK;
+}
+
+errorStatus_e CreateButton(button_t buttonInfo, COLORREF color)
+{
+    txBegin();
+    txSetFillColor(color);
+
+    txRectangle(
+        buttonInfo.startX, buttonInfo.startY, 
+        buttonInfo.startX + buttonInfo.sizeX, buttonInfo.startY + buttonInfo.sizeY
+    );
+    txDrawText(
+        buttonInfo.startX, buttonInfo.startY, 
+        buttonInfo.startX + buttonInfo.sizeX, buttonInfo.startY + buttonInfo.sizeY,
+        buttonInfo.inText
+    );
+    txEnd();
+
+    return OK;
+}
+
+bool MouseIsInButton(button_t button)
+{
+    if (((txMouseX() >= button.startX) && (txMouseX() <= button.startX + button.sizeX)) && 
+        ((txMouseY() >= button.startY) && (txMouseY() <= button.startY + button.sizeY)))
+        return true;
+    else 
+        return false;
 }

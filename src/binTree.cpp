@@ -1,6 +1,7 @@
 #include "../include/binTree.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 errorStatus_e TreeCtor(binTree_t *tree
      ON_DBG(, const char *variableName, const char *fileCreationName, const char *functionCreationName, const int lineCreationNumber)

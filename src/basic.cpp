@@ -211,6 +211,9 @@ void ShowHelp()
 
 errorStatus_e InitLogDir()
 {
+    if (_chdir(MY_LOG_FOLDER) != 0)
+        return $ERR(WRIN, "ERROR WHILE TRYING TO CD LOG FOLDER");
+
     time_t rawtime;
     struct tm *timeinfo;
     char folderName[NAME_MAX_LENGTH];
