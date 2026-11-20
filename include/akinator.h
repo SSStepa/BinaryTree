@@ -5,6 +5,7 @@
 #include "stack.h"
 
 #include <stdio.h>
+#include <Windows.h>
 
 #define MAX_ANS_LEN 100
 
@@ -68,6 +69,74 @@ const button_t Y_N_BUTTON[] = {
     {0, 0, 0, 0, ""},
 };
 
+// -------------------------------------------------------------------------------   My Input Line -------------------------------------------------------
+
+const int INPUT_START_Y = 400;
+const int INPUT_START_X = GAP_X;
+const int INPUT_END_Y   = 500;
+const int INPUT_END_X   = OUT_WINDOW_X - GAP_X;
+
+/**
+ * key info to store in memory. doesn't contain keystate because it is changeble.
+ */
+struct keyInfo {
+    char enVal;
+    char ruVal;
+};
+
+const int KEYS_TO_CHECK_LEN = 45;
+keyInfo keysToCheck[] = {
+//   WinCode(en)   | ru 
+    {VK_SPACE,      ' '},
+    {'A',           'Ô'},
+    {'B',           'È'},
+    {'C',           'Ñ'},
+    {'D',           'Â'},
+    {'E',           'Ó'},
+    {'F',           'À'},
+    {'G',           'Ï'},
+    {'H',           'Ð'},
+    {'I',           'Ø'},
+    {'J',           'Î'},
+    {'K',           'Ë'},
+    {'L',           'Ä'},
+    {'M',           'Ü'},
+    {'N',           'Ò'},
+    {'O',           'Ù'},
+    {'P',           'Ç'},
+    {'Q',           'É'},
+    {'R',           'Ê'},
+    {'S',           'Û'},
+    {'T',           'Å'},
+    {'U',           'Ã'},
+    {'V',           'Ì'},
+    {'W',           'Ö'},
+    {'X',           '×'},
+    {'Y',           'Í'},
+    {'Z',           'ß'},
+    {VK_OEM_3,      '¨'},
+    {VK_OEM_7,      'Ý'},
+    {VK_OEM_6,      'Ú'},
+    {VK_OEM_1,      'Æ'},
+    {VK_OEM_COMMA,  'Á'},
+    {VK_OEM_PERIOD, 'Þ'},
+    {VK_OEM_5,      '¨'},
+
+    {'0',           '0'},
+    {'1',           '1'},
+    {'2',           '2'},
+    {'3',           '3'},
+    {'4',           '4'},
+    {'5',           '5'},
+    {'6',           '6'},
+    {'7',           '7'},
+    {'8',           '8'},
+    {'9',           '9'},
+    {'\0', '\0'}
+};
+
+const int EN_LAYOUT_CODE = 0x0409;
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 enum gameMode_e {
@@ -85,7 +154,7 @@ enum userQuestionAns_e {
 };
 
 struct treeWordQuality_t {
-    char *word;
+    char word[MAX_IN_STRING_LEN];
     stack_t descriptionStack;
 };
 
@@ -126,5 +195,7 @@ errorStatus_e InitOutWindow();
 errorStatus_e ShowTextInWindow(const char *inString, ...);
 errorStatus_e CreateButton(button_t buttonInfo, COLORREF color);
 bool MouseIsInButton(button_t button);
+errorStatus_e GetUserInput(char *outChars);
+errorStatus_e OutUserLine(const char *line);
 
 #endif

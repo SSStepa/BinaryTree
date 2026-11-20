@@ -6,7 +6,6 @@ typedef char* binTreeNodeVal_t;
 
 #include "binTree.cpp"
 #include "../include/akinator.h"
-#include <windows.h>
 #include <stdarg.h>
 
 int main(int argc, char *const * argv)
@@ -252,6 +251,7 @@ errorStatus_e AddUnknownWord(binTreeNode_t *prevNode, binTreeNode_t *node)
 
     $INFO("starting adding new node to tree");
 
+    char buff[MAX_IN_STRING_LEN] = {};
     char *newObject   = NULL;
     char *newQuestion = NULL;
 
@@ -259,10 +259,14 @@ errorStatus_e AddUnknownWord(binTreeNode_t *prevNode, binTreeNode_t *node)
     txClear();
 
     ShowTextInWindow("Что же ты загадал(а): ");
-    newObject = strdup(txInputBox("Что же ты загадал(а): ", "akinator", "непонятно кто"));
+    GetUserInput(buff);
+    newObject = strdup(buff);
 
+    buff[0] = '\0';
+    
     ShowTextInWindow("А чем %s отличается от %s он: ", newObject, node -> val);
-    newQuestion = strdup(txInputBox("Он:", "akinator", "ничем"));
+    GetUserInput(buff);
+    newQuestion = strdup(buff);
 
     binTreeNode_t *connectionPlace = 0;
     if (prevNode -> left == node) {
@@ -294,12 +298,11 @@ errorStatus_e Define(binTree_t *tree)
     txClear();
     ShowTextInWindow("И ты хочешь что бы я определил: ");
 
-    inWord.word = strdup(txInputBox("Определить: ", "akinator"));
+    GetUserInput(inWord.word);
 
     RUN_COMMAND(GiveDefinitionTo(tree, &inWord), "PROBLEM WHILE GIVING DEFINITION OCCUR");
 
     StackDtor(&(inWord.descriptionStack));
-    free(inWord.word);
 
     return OK;
 }
@@ -319,12 +322,12 @@ errorStatus_e Compare(binTree_t *tree)
     txSetFillColor(TX_WHITE);
     txClear();
     ShowTextInWindow("Первое слово для сравнения: ");
-    firstInWord.word = strdup(txInputBox("Первое слово:", "akinator"));
+    GetUserInput(firstInWord.word);
 
     txSetFillColor(TX_WHITE);
     txClear();
     ShowTextInWindow("Второе слово для сравнения: ");
-    secondInWord.word = strdup(txInputBox("Второе слово:", "akinator"));
+    GetUserInput(secondInWord.word);
 
     RUN_COMMAND(CimpareTwoWords(tree, &firstInWord, &secondInWord), "PROBLEM WHILE COMPARING");
 
@@ -582,7 +585,7 @@ errorStatus_e OutStackIntoString(treeWordQuality_t *wordToDef, int *ind, char *w
 
             while((wordToDef -> descriptionStack).size != 1) {
                 RUN_COMMAND(STACK_POP(&(wordToDef -> descriptionStack), &quality), "ERROR WHILE TRYING TO POP DATA FROM STACK");
-                assert(quality);
+                assert(quality); 
 
                 *ind += sprintf(wholeLine + *ind, "%s", quality);
                 if (*ind == MAX_LINE_OF_ELEMS_SIZE) break;
@@ -656,6 +659,7 @@ errorStatus_e ShowTextInWindow(const char *inString, ...)
                MAIN_END_X,   MAIN_END_Y,
                outString
     );
+    txDC();
 
     txSpeak(outString);
 
@@ -690,4 +694,68 @@ bool MouseIsInButton(button_t button)
         return true;
     else 
         return false;
+}
+
+errorStatus_e GetUserInput(char *outChars)
+{
+    assert(outChars);
+
+    int len = 0;
+    int ind = 0;
+
+    bool keyIsDown[KEYS_TO_CHECK_LEN + 1] = {}; // last for backspace
+    bool isDown = false;
+    
+    DWORD threadId = GetWindowThreadProcessId(txWindow(), NULL);
+    
+    OutUserLine(outChars);
+
+    while(!txGetAsyncKeyState(VK_RETURN) && len < MAX_IN_STRING_LEN - 1) {
+        if (keysToCheck[ind].enVal == 0) {
+            ind = 0;
+            continue;
+        }
+
+        isDown = txGetAsyncKeyState(keysToCheck[ind].enVal);
+
+        if (isDown && !keyIsDown[ind]) {
+            char upper = (txGetAsyncKeyState(VK_SHIFT) ^ (GetKeyState(VK_CAPITAL) & 1)) ? 0 : 32;
+            if (txGetAsyncKeyState(VK_SPACE)) upper = 0;
+
+            outChars[len++] = (LOWORD(GetKeyboardLayout(threadId)) == EN_LAYOUT_CODE) ? keysToCheck[ind].enVal : keysToCheck[ind].ruVal + upper;
+            OutUserLine(outChars);
+        } 
+        keyIsDown[ind] = isDown;
+
+        isDown = txGetAsyncKeyState(VK_BACK);
+        if (isDown &&!keyIsDown[KEYS_TO_CHECK_LEN] && len > 0) {
+            outChars[--len] = '\0';
+            OutUserLine(outChars);
+        }
+        keyIsDown[KEYS_TO_CHECK_LEN] = isDown;
+
+        ind++;
+    }
+    outChars[len] = '\0';
+
+    txSetFillColor(TX_WHITE);
+    txClear();
+
+    return OK;
+}
+
+errorStatus_e OutUserLine(const char *line)
+{
+    assert(line);
+
+    txSetColor(TX_CYAN);
+    txSetFillColor(TX_WHITE);
+    txRectangle(INPUT_START_X, INPUT_START_Y, INPUT_END_X, INPUT_END_Y);
+
+    txSetColor(TX_BLACK);
+    txSelectFont("Comic Sans MS", USUAL_TEXT_Y_SIZE, USUAL_TEXT_X_SIZE, MAIN_TEXT_BOLD, true);
+    txDrawText(INPUT_START_X, INPUT_START_Y, INPUT_END_X, INPUT_END_Y, line);
+    txSelectFont("Comic Sans MS", MAIN_TEXT_Y_SIZE, MAIN_TEXT_X_SIZE, MAIN_TEXT_BOLD, true);
+
+    return OK;
 }
